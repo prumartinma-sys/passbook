@@ -99,6 +99,18 @@ input[type=checkbox]{accent-color:var(--accent);width:18px;height:18px}
 .menu button{border:0;background:transparent;text-align:left;padding:14px;border-bottom:1px solid var(--line);cursor:pointer}
 .menu button:last-child{border-bottom:0}
 dialog{overflow:auto}
+.chips{display:flex;gap:8px;overflow-x:auto;margin:10px -16px 0;padding:0 16px 2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:0;border-radius:999px;padding:6px 12px;background:var(--field);font-size:14px;cursor:pointer;white-space:nowrap;color:var(--text)}
+.chip.on{background:var(--accent);color:var(--accent-ink)}
+.chip .n{opacity:.65;margin-left:4px;font-size:12px}
+.chip.add{background:transparent;border:1px dashed var(--line);color:var(--muted)}
+.tagcat{display:inline-block;font-size:11px;color:var(--muted);background:var(--field);border-radius:6px;padding:0 6px;margin-right:6px;vertical-align:1px}
+.catrow{display:flex;align-items:center;gap:6px;padding:8px 8px 8px 14px;border-bottom:1px solid var(--line)}
+.catrow:last-child{border-bottom:0}
+.catrow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.catrow .cnt{font-size:12px;color:var(--muted);margin-right:4px}
+select.inline{width:auto;padding:6px 10px;font-size:15px;background:var(--card)}
 .pcard{background:var(--field);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
 .pcard.off{opacity:.45}
 .pcard .head{display:flex;gap:8px;align-items:center;font-size:14px;font-weight:600}
@@ -157,6 +169,7 @@ dialog{overflow:auto}
       </div>
     </div>
     <input id="search" class="search" type="search" placeholder="搜索名称、用户名、网址" autocomplete="off">
+    <div class="chips" id="chips"></div>
   </header>
   <div class="wrap" style="padding-top:0;padding-bottom:110px">
     <div class="count" id="count"></div>
@@ -170,6 +183,7 @@ dialog{overflow:auto}
 <dialog id="detailDlg">
   <div class="sheet">
     <div class="sheet-head"><h3 id="dTitle"></h3><button class="btn small" data-close>关闭</button></div>
+    <div class="kv"><div class="row"><div class="grow k" style="font-size:13px">分类</div><select id="dCat" class="inline"></select></div></div>
     <div class="kv" id="dUserRow"><div class="row"><div class="grow"><div class="k">用户名</div><div class="v" id="dUser"></div></div>
       <button class="btn small" id="dCopyUser">复制</button></div></div>
     <div class="kv" id="dPwRow"><div class="row"><div class="grow"><div class="k">密码</div><div class="v mono" id="dPw"></div></div>
@@ -187,6 +201,7 @@ dialog{overflow:auto}
   <form class="sheet" id="editForm" method="dialog">
     <div class="sheet-head"><h3 id="eHead">添加密码</h3><button class="btn small" type="button" data-close>取消</button></div>
     <div class="field"><label for="eName">名称</label><input id="eName" type="text" required placeholder="例如：微信、工商银行" autocomplete="off"></div>
+    <div class="field"><label for="eCat">分类</label><select id="eCat"></select></div>
     <div class="field"><label for="eUser">用户名 / 账号</label><input id="eUser" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
     <div class="field"><label for="ePw">密码</label>
       <div class="row"><input class="grow" id="ePw" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -223,6 +238,10 @@ dialog{overflow:auto}
         <option value="900">15 分钟无操作</option>
       </select></div>
     <div class="menu">
+      <button id="sCats">管理分类</button>
+      <button id="sAutoCat">自动分类「未分类」的条目</button>
+    </div>
+    <div class="menu">
       <button id="sPaste">从记事本粘贴导入</button>
       <button id="sExport">导出加密备份</button>
       <button id="sImport">从备份导入（合并）</button>
@@ -257,6 +276,19 @@ dialog{overflow:auto}
   </form>
 </dialog>
 
+<!-- 管理分类 -->
+<dialog id="catDlg">
+  <div class="sheet">
+    <div class="sheet-head"><h3>管理分类</h3><button class="btn small" type="button" data-close>完成</button></div>
+    <form id="catAddForm" class="row">
+      <input class="grow" id="catNew" type="text" placeholder="新分类名称，例如：工作" maxlength="20" autocomplete="off">
+      <button class="btn primary small" type="submit">添加</button>
+    </form>
+    <div class="menu" id="catList"></div>
+    <p class="meter-label" style="margin:0">删除分类不会删除里面的密码，它们会变成「未分类」。</p>
+  </div>
+</dialog>
+
 <!-- 从记事本导入 -->
 <dialog id="pasteDlg">
   <div class="sheet">
@@ -268,6 +300,7 @@ dialog{overflow:auto}
     </div>
     <div id="pasteStep2" class="hidden" style="display:flex;flex-direction:column;gap:12px">
       <div class="row"><div class="grow meter-label" id="pasteSummary"></div><button class="btn small" type="button" id="pasteBack">返回修改</button></div>
+      <div class="row"><span class="grow" style="font-size:14px">导入到分类</span><select id="pasteCat" class="inline"></select></div>
       <p class="meter-label" style="margin:0">请逐条检查，识别不对的可以直接改，不要的取消勾选。</p>
       <div id="pasteList"></div>
       <button class="btn primary" type="button" id="pasteImport">导入</button>
@@ -389,12 +422,82 @@ $('lockForm').addEventListener('submit', async e => {
 const COLORS = ['#2f6b57','#6b4fa0','#b35c2e','#2e6fb3','#a33d5c','#4f7a2e','#7a5a2e','#2e7a7a'];
 function colorFor(s){ let h=0; for (const c of s) h = (h*31 + c.codePointAt(0)) >>> 0; return COLORS[h % COLORS.length]; }
 
-function enterMain(){ show('main'); renderList(); touch(); }
+function enterMain(){ if (ensureCats()) persist(); show('main'); renderList(); touch(); }
+
+// ---------- 分类 ----------
+const DEFAULT_CATS = ['工作', '个人邮箱', 'Apple ID', '社交', '购物', '银行金融'];
+const newId = () => crypto.randomUUID ? crypto.randomUUID() : b64(rand(16));
+let catFilter = 'all';   // 'all' | '' (未分类) | 分类 id
+function ensureCats(){
+  if (Array.isArray(session.vault.categories)) return false;
+  session.vault.categories = DEFAULT_CATS.map(name => ({ id: newId(), name }));
+  return true;
+}
+const cats = () => session.vault.categories;
+const catById = id => cats().find(c => c.id === id);
+const catOf = e => (e.cat && catById(e.cat)) ? e.cat : '';
+function addCategory(name){
+  name = name.trim().slice(0, 20); if (!name) return '';
+  const ex = cats().find(c => c.name === name); if (ex) return ex.id;
+  const c = { id: newId(), name }; cats().push(c); return c.id;
+}
+function fillCatSelect(sel, value, { withNew = true, withAuto = false } = {}){
+  const opts = [];
+  if (withAuto) opts.push(['__auto', '自动识别']);
+  opts.push(['', '未分类'], ...cats().map(c => [c.id, c.name]));
+  if (withNew) opts.push(['__new', '＋ 新建分类…']);
+  sel.replaceChildren(...opts.map(([v, t]) => { const o = document.createElement('option'); o.value = v; o.textContent = t; return o; }));
+  sel.value = value; if (sel.value !== value) sel.value = '';
+  sel.dataset.prev = sel.value;
+}
+function bindCatSelect(sel, onPick, opts){
+  sel.addEventListener('change', async () => {
+    if (sel.value === '__new') {
+      const name = (prompt('新分类名称') || '').trim();
+      if (!name) { sel.value = sel.dataset.prev || ''; return; }
+      const id = addCategory(name); await persist();
+      fillCatSelect(sel, id, opts); renderList();
+    }
+    sel.dataset.prev = sel.value;
+    if (onPick) onPick(sel.value);
+  });
+}
+const CAT_RULES = [
+  ['Apple ID', /apple|icloud|苹果/i],
+  ['个人邮箱', /邮箱|e-?mail|gmail|outlook|hotmail|yahoo|163|126|qq邮箱|foxmail|proton|mail/i],
+  ['银行金融', /银行|bank|支付宝|alipay|paypal|信用卡|证券|基金|保险|wise|招行|工行|建行|农行|中行/i],
+  ['社交', /微信|wechat|qq|微博|weibo|抖音|tiktok|小红书|b站|bilibili|facebook|instagram|twitter|whatsapp|telegram|line|知乎|豆瓣|linkedin|领英/i],
+  ['购物', /淘宝|天猫|京东|拼多多|amazon|亚马逊|闲鱼|美团|饿了么|shopee|lazada|ebay|grab/i],
+  ['工作', /工作|公司|企业|work|office|钉钉|飞书|slack|jira|confluence|vpn|teams|zoom/i],
+];
+function guessCat(e){
+  const s = [e.name, e.url].join(' ');
+  for (const [name, re] of CAT_RULES) if (re.test(s)) { const c = cats().find(c => c.name === name); if (c) return c.id; }
+  return '';
+}
+function renderChips(){
+  const es = session.vault.entries;
+  const n = id => es.filter(e => catOf(e) === id).length;
+  const defs = [['all', '全部', es.length], ...cats().map(c => [c.id, c.name, n(c.id)])];
+  const unc = n(''); if (unc) defs.push(['', '未分类', unc]);
+  if (!defs.some(d => d[0] === catFilter)) catFilter = 'all';
+  const chips = defs.map(([id, name, count]) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (id === catFilter ? ' on' : '');
+    b.append(name); const s = document.createElement('span'); s.className = 'n'; s.textContent = count; b.append(s);
+    b.addEventListener('click', () => { catFilter = id; renderList(); });
+    return b;
+  });
+  const add = document.createElement('button'); add.type = 'button'; add.className = 'chip add'; add.textContent = '＋ 分类';
+  add.addEventListener('click', openCatManager);
+  $('chips').replaceChildren(...chips, add);
+}
 
 function renderList(){
+  renderChips();
   const q = $('search').value.trim().toLowerCase();
   const all = session.vault.entries.slice().sort((a,b) => a.name.localeCompare(b.name, 'zh-CN'));
-  const items = q ? all.filter(e => [e.name,e.user,e.url,e.note].some(x => (x||'').toLowerCase().includes(q))) : all;
+  let items = catFilter === 'all' ? all : all.filter(e => catOf(e) === catFilter);
+  if (q) items = items.filter(e => [e.name,e.user,e.url,e.note].some(x => (x||'').toLowerCase().includes(q)));
   const list = $('list');
   list.replaceChildren(...items.map(e => {
     const b = document.createElement('button'); b.className = 'item'; b.type = 'button';
@@ -402,14 +505,17 @@ function renderList(){
     av.textContent = [...(e.name || '?')][0].toUpperCase(); av.style.background = colorFor(e.name || '');
     const box = document.createElement('div'); box.style.minWidth = '0';
     const t = document.createElement('div'); t.className = 't'; t.textContent = e.name;
-    const s = document.createElement('div'); s.className = 's'; s.textContent = e.user || e.url || '—';
+    const s = document.createElement('div'); s.className = 's';
+    if (catFilter === 'all' && catOf(e)) { const tg = document.createElement('span'); tg.className = 'tagcat'; tg.textContent = catById(e.cat).name; s.append(tg); }
+    s.append(e.user || e.url || '—');
     box.append(t, s); b.append(av, box);
     b.addEventListener('click', () => openDetail(e.id));
     return b;
   }));
   list.classList.toggle('hidden', items.length === 0);
   $('empty').classList.toggle('hidden', all.length !== 0);
-  $('count').textContent = all.length ? (q ? `找到 ${items.length} 条` : `共 ${all.length} 条`) : '';
+  $('count').textContent = !all.length ? '' : (q ? `找到 ${items.length} 条` : catFilter === 'all' ? `共 ${all.length} 条` : `${items.length} 条`);
+  if (all.length && !items.length && !q) $('count').textContent = '这个分类还没有密码';
 }
 $('search').addEventListener('input', renderList);
 
@@ -419,6 +525,7 @@ function openDetail(id){
   current = session.vault.entries.find(e => e.id === id);
   if (!current) return;
   $('dTitle').textContent = current.name;
+  fillCatSelect($('dCat'), catOf(current));
   $('dUser').textContent = current.user || '';
   $('dUserRow').classList.toggle('hidden', !current.user);
   $('dPw').textContent = current.pw ? '••••••••••' : '';
@@ -431,6 +538,10 @@ function openDetail(id){
   $('dMeta').textContent = '最后修改：' + new Date(current.updated).toLocaleString('zh-CN');
   $('detailDlg').showModal();
 }
+bindCatSelect($('dCat'), async v => {
+  current.cat = v; current.updated = Date.now();
+  await persist(); renderList(); toast(v ? `已移到「${catById(v).name}」` : '已设为未分类');
+});
 $('dShowPw').addEventListener('click', () => {
   const hidden = $('dShowPw').textContent === '显示';
   $('dPw').textContent = hidden ? current.pw : '••••••••••';
@@ -466,6 +577,7 @@ function openEditor(entry){
   editing = entry || null;
   $('eHead').textContent = entry ? '编辑' : '添加密码';
   $('eName').value = entry?.name || '';
+  fillCatSelect($('eCat'), entry ? catOf(entry) : (catFilter !== 'all' ? catFilter : ''));
   $('eUser').value = entry?.user || '';
   $('ePw').value = entry?.pw || '';
   $('eUrl').value = entry?.url || '';
@@ -481,6 +593,7 @@ $('eToggle').addEventListener('click', () => {
   const show = $('ePw').type === 'password';
   $('ePw').type = show ? 'text' : 'password'; $('eToggle').textContent = show ? '隐藏' : '显示';
 });
+bindCatSelect($('eCat'));
 $('ePw').addEventListener('input', () => paintMeter($('eMeter'), $('eMeterLabel'), $('ePw').value));
 $('eGenToggle').addEventListener('click', () => {
   $('genBox').classList.remove('hidden'); runGen();
@@ -489,7 +602,8 @@ $('editForm').addEventListener('submit', async e => {
   e.preventDefault();
   const name = $('eName').value.trim(); if (!name) return;
   const now = Date.now();
-  const data = { name, user:$('eUser').value.trim(), pw:$('ePw').value, url:$('eUrl').value.trim(), note:$('eNote').value };
+  const cat = $('eCat').value === '__new' ? '' : $('eCat').value;
+  const data = { name, cat, user:$('eUser').value.trim(), pw:$('ePw').value, url:$('eUrl').value.trim(), note:$('eNote').value };
   if (editing) Object.assign(editing, data, { updated: now });
   else session.vault.entries.push({ id: crypto.randomUUID ? crypto.randomUUID() : b64(rand(16)), ...data, created: now, updated: now });
   await persist(); $('editDlg').close(); renderList(); toast('已保存');
@@ -569,9 +683,16 @@ $('impForm').addEventListener('submit', async e => {
   try {
     const r = await open(pendingImport, $('impPw').value);
     const incoming = Array.isArray(r.data.entries) ? r.data.entries : [];
+    const remap = {};
+    for (const c of (Array.isArray(r.data.categories) ? r.data.categories : [])) {
+      if (!c || typeof c.id !== 'string' || typeof c.name !== 'string' || catById(c.id)) continue;
+      const same = cats().find(x => x.name === c.name);
+      if (same) remap[c.id] = same.id; else cats().push({ id: c.id, name: c.name.slice(0, 20) });
+    }
     let added = 0, updated = 0;
     for (const inc of incoming) {
       if (!inc || typeof inc.name !== 'string') continue;
+      if (inc.cat && remap[inc.cat]) inc.cat = remap[inc.cat];
       const ex = session.vault.entries.find(x => x.id === inc.id);
       if (!ex) { session.vault.entries.push(inc); added++; }
       else if ((inc.updated||0) > (ex.updated||0)) { Object.assign(ex, inc); updated++; }
@@ -716,21 +837,76 @@ $('pasteParse').addEventListener('click', () => {
   const have = new Set(session.vault.entries.map(key));
   parsed = parseNotes($('pasteText').value).map(p => { const dup = have.has(key(p)); return { ...p, dup, on: !!p.pw && !dup }; });
   if (!parsed.length) return toast('没识别到内容，请检查粘贴的文字');
+  fillCatSelect($('pasteCat'), '__auto', PASTE_CAT_OPTS);
   pasteStep(2); renderPreview();
 });
+const PASTE_CAT_OPTS = { withAuto: true, withNew: true };
+bindCatSelect($('pasteCat'), null, PASTE_CAT_OPTS);
 $('pasteBack').addEventListener('click', () => pasteStep(1));
 $('pasteImport').addEventListener('click', async () => {
   const now = Date.now(); let n = 0;
+  const pc = $('pasteCat').value;
   for (const p of parsed) {
     if (!p.on) continue;
     const name = p.name.trim() || p.user.trim() || '未命名';
-    session.vault.entries.push({ id: crypto.randomUUID ? crypto.randomUUID() : b64(rand(16)),
-      name, user: p.user.trim(), pw: p.pw, url: p.url.trim(), note: p.note, created: now, updated: now });
+    const e = { id: newId(), name, user: p.user.trim(), pw: p.pw, url: p.url.trim(), note: p.note, created: now, updated: now };
+    e.cat = pc === '__auto' ? guessCat(e) : (pc === '__new' ? '' : pc);
+    session.vault.entries.push(e);
     n++;
   }
   await persist(); parsed = []; $('pasteText').value = '';
   $('pasteDlg').close(); renderList();
   toast(`已导入 ${n} 条。确认无误后，记得删掉备忘录里的明文密码`, 5000);
+});
+
+// ---------- 管理分类 ----------
+function openCatManager(){
+  if ($('settingsDlg').open) $('settingsDlg').close();
+  $('catNew').value = ''; renderCatList(); $('catDlg').showModal();
+}
+function renderCatList(){
+  const es = session.vault.entries;
+  const list = cats().map((c, i) => {
+    const row = document.createElement('div'); row.className = 'catrow';
+    const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = c.name;
+    const cnt = document.createElement('span'); cnt.className = 'cnt'; cnt.textContent = es.filter(e => e.cat === c.id).length + ' 条';
+    const btn = (label, fn, cls = '') => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small ' + cls; b.textContent = label; b.addEventListener('click', fn); return b; };
+    const up = btn('↑', async () => { [cats()[i - 1], cats()[i]] = [cats()[i], cats()[i - 1]]; await persist(); renderCatList(); });
+    up.disabled = i === 0; up.setAttribute('aria-label', '上移');
+    row.append(nm, cnt, up,
+      btn('改名', async () => {
+        const v = (prompt('新的分类名称', c.name) || '').trim().slice(0, 20);
+        if (!v || v === c.name) return;
+        if (cats().some(x => x.name === v)) return toast('已经有这个分类了');
+        c.name = v; await persist(); renderCatList();
+      }),
+      btn('删除', async () => {
+        const n = es.filter(e => e.cat === c.id).length;
+        if (!confirm(`删除分类「${c.name}」？` + (n ? `里面的 ${n} 条密码会变成「未分类」，不会被删除。` : ''))) return;
+        session.vault.categories = cats().filter(x => x.id !== c.id);
+        for (const e of es) if (e.cat === c.id) e.cat = '';
+        await persist(); renderCatList();
+      }, 'danger'));
+    return row;
+  });
+  if (!list.length) { const p = document.createElement('div'); p.className = 'catrow'; p.textContent = '还没有分类'; list.push(p); }
+  $('catList').replaceChildren(...list);
+}
+$('sCats').addEventListener('click', openCatManager);
+$('catDlg').addEventListener('close', () => { if (session) renderList(); });
+$('catAddForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const v = $('catNew').value.trim(); if (!v) return;
+  if (cats().some(c => c.name === v)) return toast('已经有这个分类了');
+  addCategory(v); await persist(); $('catNew').value = ''; renderCatList();
+});
+$('sAutoCat').addEventListener('click', async () => {
+  const todo = session.vault.entries.filter(e => !catOf(e));
+  if (!todo.length) return toast('所有条目都已经有分类了');
+  let n = 0;
+  for (const e of todo) { const c = guessCat(e); if (c) { e.cat = c; e.updated = Date.now(); n++; } }
+  await persist(); $('settingsDlg').close(); catFilter = 'all'; renderList();
+  toast(`自动分好了 ${n} 条` + (todo.length - n ? `，还有 ${todo.length - n} 条没认出来，请点进去手动选分类` : ''), 4000);
 });
 
 document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => b.closest('dialog').close()));
