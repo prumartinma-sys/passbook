@@ -1,0 +1,13 @@
+{
+  "name": "密码本",
+  "short_name": "密码本",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f4f1",
+  "theme_color": "#2f6b57",
+  "icons": [
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

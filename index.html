@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>密码本</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="密码本">
+<meta name="theme-color" content="#f4f4f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151716" media="(prefers-color-scheme: dark)">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<style>
+:root{
+  --bg:#f4f4f1; --card:#ffffff; --text:#1b1d1c; --muted:#6b706d; --line:#e3e4df;
+  --accent:#2f6b57; --accent-ink:#fff; --danger:#b3261e; --field:#f0f1ed;
+  --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 16px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#151716; --card:#1f2221; --text:#ecedea; --muted:#9a9f9b; --line:#2e3230;
+    --accent:#5fb394; --accent-ink:#0d1a15; --danger:#ff8a80; --field:#272b29;
+    --shadow:none; }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text)}
+body{font:16px/1.45 -apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;
+  min-height:100dvh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+button,input,select,textarea{font:inherit;color:inherit}
+.hidden{display:none!important}
+.wrap{max-width:560px;margin:0 auto;padding:16px}
+
+/* auth screens */
+.auth{min-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));display:flex;flex-direction:column;justify-content:center;gap:14px}
+.logo{width:64px;height:64px;border-radius:16px;margin-bottom:4px}
+h1{font-size:28px;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0 0 8px}
+.note{font-size:13px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.err{color:var(--danger);font-size:14px;min-height:20px}
+
+/* inputs & buttons */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:13px;color:var(--muted)}
+input[type=text],input[type=password],input[type=url],input[type=search],textarea,select{
+  width:100%;border:1px solid transparent;background:var(--field);border-radius:12px;padding:12px 14px;outline:none;font-size:16px}
+input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+textarea{min-height:80px;resize:vertical}
+.btn{appearance:none;border:0;border-radius:12px;padding:12px 16px;background:var(--field);font-weight:600;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--danger)}
+.btn.small{padding:7px 12px;font-size:14px;border-radius:10px}
+.btn:disabled{opacity:.5}
+.row{display:flex;gap:8px;align-items:center}
+.row > .grow{flex:1;min-width:0}
+.icon-btn{appearance:none;border:0;background:transparent;padding:8px;border-radius:10px;cursor:pointer;color:var(--text);display:inline-flex}
+.icon-btn svg{width:22px;height:22px}
+
+/* main */
+header.top{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 16px 8px;max-width:560px;margin:0 auto}
+header.top .row{justify-content:space-between}
+header.top h2{margin:0;font-size:24px}
+.search{margin-top:10px}
+.list{display:flex;flex-direction:column;gap:2px;background:var(--card);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.item{display:flex;align-items:center;gap:12px;padding:12px 14px;border:0;background:transparent;text-align:left;width:100%;cursor:pointer;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.avatar{width:38px;height:38px;border-radius:10px;flex:none;display:grid;place-items:center;font-weight:700;color:#fff;font-size:17px}
+.item .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .s{font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empty{text-align:center;color:var(--muted);padding:48px 16px}
+.count{font-size:13px;color:var(--muted);margin:14px 4px 6px}
+.fab{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:calc(20px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;
+  border:0;background:var(--accent);color:var(--accent-ink);font-size:30px;line-height:1;box-shadow:0 6px 20px rgba(0,0,0,.2);cursor:pointer}
+
+/* sheets */
+dialog{border:0;padding:0;background:var(--card);color:var(--text);width:min(560px,100vw);max-width:100vw;max-height:92dvh;
+  margin:auto auto 0;border-radius:20px 20px 0 0;padding-bottom:env(safe-area-inset-bottom)}
+@media (min-width:600px){dialog{margin:auto;border-radius:20px}}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+.sheet{padding:18px 16px 20px;display:flex;flex-direction:column;gap:14px}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sheet-head h3{margin:0;font-size:19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kv{background:var(--field);border-radius:12px;padding:10px 12px}
+.kv .k{font-size:12px;color:var(--muted)}
+.kv .v{word-break:break-all;white-space:pre-wrap}
+.kv .v.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.02em}
+.gen{background:var(--field);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.gen .opts{display:flex;flex-wrap:wrap;gap:12px;font-size:14px}
+.gen label{display:flex;align-items:center;gap:6px}
+input[type=range]{flex:1;accent-color:var(--accent)}
+input[type=checkbox]{accent-color:var(--accent);width:18px;height:18px}
+.meter{height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;width:0;transition:width .2s,background .2s}
+.meter-label{font-size:12px;color:var(--muted)}
+.menu{display:flex;flex-direction:column;background:var(--field);border-radius:12px;overflow:hidden}
+.menu button{border:0;background:transparent;text-align:left;padding:14px;border-bottom:1px solid var(--line);cursor:pointer}
+.menu button:last-child{border-bottom:0}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);
+  padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:100}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- 首次设置 -->
+<section id="setup" class="wrap auth hidden">
+  <img class="logo" src="icon-180.png" alt="">
+  <h1>创建密码本</h1>
+  <p class="sub">设置一个主密码，用来加密你保存的所有密码。</p>
+  <form id="setupForm" class="auth" style="min-height:0;gap:12px">
+    <div class="field"><label for="setupPw">主密码（至少 8 位）</label>
+      <input id="setupPw" type="password" autocomplete="new-password" required minlength="8"></div>
+    <div class="meter"><i id="setupMeter"></i></div>
+    <div class="field"><label for="setupPw2">再输入一次</label>
+      <input id="setupPw2" type="password" autocomplete="new-password" required></div>
+    <div class="err" id="setupErr"></div>
+    <button class="btn primary" type="submit">创建</button>
+  </form>
+  <p class="note">⚠️ 主密码不会上传到任何地方，也<b>无法找回</b>。忘记主密码 = 数据永久无法解密。请记牢，并定期在「设置」里导出加密备份。</p>
+</section>
+
+<!-- 解锁 -->
+<section id="lock" class="wrap auth hidden">
+  <img class="logo" src="icon-180.png" alt="">
+  <h1>密码本</h1>
+  <p class="sub">输入主密码解锁</p>
+  <form id="lockForm" class="auth" style="min-height:0;gap:12px">
+    <input id="lockPw" type="password" autocomplete="current-password" placeholder="主密码" required>
+    <div class="err" id="lockErr"></div>
+    <button class="btn primary" type="submit" id="unlockBtn">解锁</button>
+  </form>
+</section>
+
+<!-- 主界面 -->
+<section id="main" class="hidden">
+  <header class="top">
+    <div class="row">
+      <h2>密码本</h2>
+      <div class="row" style="gap:2px">
+        <button class="icon-btn" id="settingsBtn" aria-label="设置">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </button>
+        <button class="icon-btn" id="lockBtn" aria-label="锁定">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        </button>
+      </div>
+    </div>
+    <input id="search" class="search" type="search" placeholder="搜索名称、用户名、网址" autocomplete="off">
+  </header>
+  <div class="wrap" style="padding-top:0;padding-bottom:110px">
+    <div class="count" id="count"></div>
+    <div class="list" id="list"></div>
+    <div class="empty hidden" id="empty">还没有保存任何密码<br>点右下角 ＋ 添加</div>
+  </div>
+  <button class="fab" id="addBtn" aria-label="添加">＋</button>
+</section>
+
+<!-- 详情 -->
+<dialog id="detailDlg">
+  <div class="sheet">
+    <div class="sheet-head"><h3 id="dTitle"></h3><button class="btn small" data-close>关闭</button></div>
+    <div class="kv" id="dUserRow"><div class="row"><div class="grow"><div class="k">用户名</div><div class="v" id="dUser"></div></div>
+      <button class="btn small" id="dCopyUser">复制</button></div></div>
+    <div class="kv" id="dPwRow"><div class="row"><div class="grow"><div class="k">密码</div><div class="v mono" id="dPw"></div></div>
+      <button class="btn small" id="dShowPw">显示</button><button class="btn small primary" id="dCopyPw">复制</button></div></div>
+    <div class="kv" id="dUrlRow"><div class="row"><div class="grow"><div class="k">网址</div><div class="v" id="dUrl"></div></div>
+      <button class="btn small" id="dOpenUrl">打开</button></div></div>
+    <div class="kv" id="dNoteRow"><div class="k">备注</div><div class="v" id="dNote"></div></div>
+    <div class="meter-label" id="dMeta"></div>
+    <div class="row"><button class="btn grow" id="dEdit">编辑</button><button class="btn danger" id="dDelete">删除</button></div>
+  </div>
+</dialog>
+
+<!-- 编辑 -->
+<dialog id="editDlg">
+  <form class="sheet" id="editForm" method="dialog">
+    <div class="sheet-head"><h3 id="eHead">添加密码</h3><button class="btn small" type="button" data-close>取消</button></div>
+    <div class="field"><label for="eName">名称</label><input id="eName" type="text" required placeholder="例如：微信、工商银行" autocomplete="off"></div>
+    <div class="field"><label for="eUser">用户名 / 账号</label><input id="eUser" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+    <div class="field"><label for="ePw">密码</label>
+      <div class="row"><input class="grow" id="ePw" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="btn small" type="button" id="eToggle">显示</button>
+        <button class="btn small" type="button" id="eGenToggle">生成</button></div>
+      <div class="meter"><i id="eMeter"></i></div><div class="meter-label" id="eMeterLabel"></div>
+    </div>
+    <div class="gen hidden" id="genBox">
+      <div class="row"><span style="font-size:14px">长度</span><input type="range" id="gLen" min="8" max="40" value="20"><b id="gLenV" style="width:28px;text-align:right">20</b></div>
+      <div class="opts">
+        <label><input type="checkbox" id="gUpper" checked>大写</label>
+        <label><input type="checkbox" id="gLower" checked>小写</label>
+        <label><input type="checkbox" id="gDigit" checked>数字</label>
+        <label><input type="checkbox" id="gSym" checked>符号</label>
+        <label><input type="checkbox" id="gAmb" checked>排除易混字符</label>
+      </div>
+      <button class="btn small primary" type="button" id="gRun">重新生成</button>
+    </div>
+    <div class="field"><label for="eUrl">网址</label><input id="eUrl" type="text" inputmode="url" autocomplete="off" autocapitalize="off" placeholder="https://"></div>
+    <div class="field"><label for="eNote">备注</label><textarea id="eNote"></textarea></div>
+    <button class="btn primary" type="submit">保存</button>
+  </form>
+</dialog>
+
+<!-- 设置 -->
+<dialog id="settingsDlg">
+  <div class="sheet">
+    <div class="sheet-head"><h3>设置</h3><button class="btn small" data-close>关闭</button></div>
+    <div class="field"><label for="sAutoLock">自动锁定</label>
+      <select id="sAutoLock">
+        <option value="0">离开 App 后立即锁定</option>
+        <option value="60">1 分钟无操作</option>
+        <option value="300">5 分钟无操作</option>
+        <option value="900">15 分钟无操作</option>
+      </select></div>
+    <div class="menu">
+      <button id="sExport">导出加密备份</button>
+      <button id="sImport">从备份导入（合并）</button>
+      <button id="sChangePw">修改主密码</button>
+    </div>
+    <div class="menu"><button id="sWipe" class="btn danger" style="border-radius:0;font-weight:600">清除所有数据</button></div>
+    <p class="meter-label">数据使用 AES-256-GCM 加密，密钥由主密码经 PBKDF2-SHA256（60 万次）派生，只保存在本设备上。</p>
+    <input type="file" id="importFile" accept=".json,application/json" class="hidden">
+  </div>
+</dialog>
+
+<!-- 修改主密码 -->
+<dialog id="pwDlg">
+  <form class="sheet" id="pwForm" method="dialog">
+    <div class="sheet-head"><h3>修改主密码</h3><button class="btn small" type="button" data-close>取消</button></div>
+    <input id="pwOld" type="password" placeholder="当前主密码" autocomplete="current-password" required>
+    <input id="pwNew" type="password" placeholder="新主密码（至少 8 位）" autocomplete="new-password" required minlength="8">
+    <input id="pwNew2" type="password" placeholder="再输入一次新主密码" autocomplete="new-password" required>
+    <div class="err" id="pwErr"></div>
+    <button class="btn primary" type="submit">确认修改</button>
+  </form>
+</dialog>
+
+<!-- 输入备份密码 -->
+<dialog id="impDlg">
+  <form class="sheet" id="impForm" method="dialog">
+    <div class="sheet-head"><h3>导入备份</h3><button class="btn small" type="button" data-close>取消</button></div>
+    <p class="sub" style="margin:0">请输入<b>创建该备份时</b>使用的主密码。导入的条目会合并到当前密码本。</p>
+    <input id="impPw" type="password" placeholder="备份的主密码" autocomplete="off" required>
+    <div class="err" id="impErr"></div>
+    <button class="btn primary" type="submit">导入</button>
+  </form>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+'use strict';
+const STORE_KEY = 'passbook.vault.v1';
+const PREF_KEY = 'passbook.prefs.v1';
+const ITER = 600000;
+const enc = new TextEncoder(), dec = new TextDecoder();
+const $ = id => document.getElementById(id);
+
+// ---------- 存储 ----------
+function safeGet(k){ try { return localStorage.getItem(k); } catch { return null; } }
+function safeSet(k,v){ try { localStorage.setItem(k,v); return true; } catch { return false; } }
+function safeDel(k){ try { localStorage.removeItem(k); } catch {} }
+const prefs = Object.assign({ autoLock: 300 }, JSON.parse(safeGet(PREF_KEY) || '{}'));
+function savePrefs(){ safeSet(PREF_KEY, JSON.stringify(prefs)); }
+
+// ---------- 加密 ----------
+const b64 = u8 => { let s=''; for (const b of u8) s += String.fromCharCode(b); return btoa(s); };
+const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+const rand = n => crypto.getRandomValues(new Uint8Array(n));
+
+async function deriveKey(pw, salt, iter){
+  const base = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name:'PBKDF2', salt, iterations:iter, hash:'SHA-256' },
+    base, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+}
+async function seal(key, salt, iter, data){
+  const iv = rand(12);
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, enc.encode(JSON.stringify(data))));
+  return { app:'passbook', v:1, kdf:{ name:'PBKDF2-SHA256', iter, salt:b64(salt) }, iv:b64(iv), ct:b64(ct) };
+}
+async function open(blob, pw){
+  const salt = unb64(blob.kdf.salt);
+  const key = await deriveKey(pw, salt, blob.kdf.iter);
+  const pt = await crypto.subtle.decrypt({ name:'AES-GCM', iv:unb64(blob.iv) }, key, unb64(blob.ct));
+  return { key, salt, iter: blob.kdf.iter, data: JSON.parse(dec.decode(pt)) };
+}
+function validBlob(o){
+  return o && o.app === 'passbook' && o.kdf && typeof o.kdf.salt === 'string' && Number.isInteger(o.kdf.iter)
+    && o.kdf.iter >= 10000 && typeof o.iv === 'string' && typeof o.ct === 'string';
+}
+
+// ---------- 会话状态（仅内存）----------
+let session = null; // { key, salt, iter, vault:{entries:[]} }
+
+async function persist(){
+  const blob = await seal(session.key, session.salt, session.iter, session.vault);
+  if (!safeSet(STORE_KEY, JSON.stringify(blob))) toast('保存失败：存储不可用');
+}
+
+// ---------- 视图 ----------
+function show(view){
+  for (const v of ['setup','lock','main']) $(v).classList.toggle('hidden', v !== view);
+}
+function closeAllDialogs(){ document.querySelectorAll('dialog[open]').forEach(d => d.close()); }
+
+let toastTimer;
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function lock(){
+  session = null; current = null;
+  closeAllDialogs();
+  $('lockPw').value = ''; $('lockErr').textContent = ''; $('search').value = '';
+  $('list').replaceChildren();
+  show('lock');
+}
+
+// ---------- 设置主密码 ----------
+$('setupPw').addEventListener('input', e => paintMeter($('setupMeter'), null, e.target.value));
+$('setupForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const a = $('setupPw').value, b = $('setupPw2').value;
+  if (a.length < 8) return $('setupErr').textContent = '主密码至少 8 位';
+  if (a !== b) return $('setupErr').textContent = '两次输入不一致';
+  $('setupErr').textContent = '正在创建…';
+  const salt = rand(16);
+  const key = await deriveKey(a, salt, ITER);
+  session = { key, salt, iter: ITER, vault: { entries: [] } };
+  await persist();
+  $('setupPw').value = $('setupPw2').value = '';
+  $('setupErr').textContent = '';
+  requestPersistentStorage();
+  enterMain();
+});
+
+// ---------- 解锁 ----------
+let failCount = 0;
+$('lockForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = $('unlockBtn'); btn.disabled = true; $('lockErr').textContent = '正在解锁…';
+  try {
+    const blob = JSON.parse(safeGet(STORE_KEY));
+    const r = await open(blob, $('lockPw').value);
+    session = { key:r.key, salt:r.salt, iter:r.iter, vault:r.data };
+    if (!Array.isArray(session.vault.entries)) session.vault.entries = [];
+    failCount = 0; $('lockPw').value = ''; $('lockErr').textContent = '';
+    enterMain();
+  } catch {
+    failCount++;
+    $('lockErr').textContent = '主密码错误';
+    $('lockPw').select();
+    if (failCount >= 3) { await new Promise(r => setTimeout(r, Math.min(30, 2 ** (failCount - 2)) * 1000)); }
+  } finally { btn.disabled = false; }
+});
+
+// ---------- 列表 ----------
+const COLORS = ['#2f6b57','#6b4fa0','#b35c2e','#2e6fb3','#a33d5c','#4f7a2e','#7a5a2e','#2e7a7a'];
+function colorFor(s){ let h=0; for (const c of s) h = (h*31 + c.codePointAt(0)) >>> 0; return COLORS[h % COLORS.length]; }
+
+function enterMain(){ show('main'); renderList(); touch(); }
+
+function renderList(){
+  const q = $('search').value.trim().toLowerCase();
+  const all = session.vault.entries.slice().sort((a,b) => a.name.localeCompare(b.name, 'zh-CN'));
+  const items = q ? all.filter(e => [e.name,e.user,e.url,e.note].some(x => (x||'').toLowerCase().includes(q))) : all;
+  const list = $('list');
+  list.replaceChildren(...items.map(e => {
+    const b = document.createElement('button'); b.className = 'item'; b.type = 'button';
+    const av = document.createElement('div'); av.className = 'avatar';
+    av.textContent = [...(e.name || '?')][0].toUpperCase(); av.style.background = colorFor(e.name || '');
+    const box = document.createElement('div'); box.style.minWidth = '0';
+    const t = document.createElement('div'); t.className = 't'; t.textContent = e.name;
+    const s = document.createElement('div'); s.className = 's'; s.textContent = e.user || e.url || '—';
+    box.append(t, s); b.append(av, box);
+    b.addEventListener('click', () => openDetail(e.id));
+    return b;
+  }));
+  list.classList.toggle('hidden', items.length === 0);
+  $('empty').classList.toggle('hidden', all.length !== 0);
+  $('count').textContent = all.length ? (q ? `找到 ${items.length} 条` : `共 ${all.length} 条`) : '';
+}
+$('search').addEventListener('input', renderList);
+
+// ---------- 详情 ----------
+let current = null;
+function openDetail(id){
+  current = session.vault.entries.find(e => e.id === id);
+  if (!current) return;
+  $('dTitle').textContent = current.name;
+  $('dUser').textContent = current.user || '';
+  $('dUserRow').classList.toggle('hidden', !current.user);
+  $('dPw').textContent = current.pw ? '••••••••••' : '';
+  $('dShowPw').textContent = '显示';
+  $('dPwRow').classList.toggle('hidden', !current.pw);
+  $('dUrl').textContent = current.url || '';
+  $('dUrlRow').classList.toggle('hidden', !current.url);
+  $('dNote').textContent = current.note || '';
+  $('dNoteRow').classList.toggle('hidden', !current.note);
+  $('dMeta').textContent = '最后修改：' + new Date(current.updated).toLocaleString('zh-CN');
+  $('detailDlg').showModal();
+}
+$('dShowPw').addEventListener('click', () => {
+  const hidden = $('dShowPw').textContent === '显示';
+  $('dPw').textContent = hidden ? current.pw : '••••••••••';
+  $('dShowPw').textContent = hidden ? '隐藏' : '显示';
+});
+$('dCopyUser').addEventListener('click', () => copy(current.user, '用户名已复制'));
+$('dCopyPw').addEventListener('click', () => copy(current.pw, '密码已复制，60 秒后尝试清除剪贴板'));
+$('dOpenUrl').addEventListener('click', () => {
+  let u = current.url.trim(); if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
+  try { const p = new URL(u); if (p.protocol === 'http:' || p.protocol === 'https:') window.open(p.href, '_blank', 'noopener'); } catch { toast('网址无效'); }
+});
+$('dEdit').addEventListener('click', () => { $('detailDlg').close(); openEditor(current); });
+$('dDelete').addEventListener('click', async () => {
+  if (!confirm(`确定删除「${current.name}」？此操作无法撤销。`)) return;
+  session.vault.entries = session.vault.entries.filter(e => e.id !== current.id);
+  await persist(); $('detailDlg').close(); renderList(); toast('已删除');
+});
+
+let clipTimer;
+async function copy(text, msg){
+  try {
+    await navigator.clipboard.writeText(text); toast(msg);
+    clearTimeout(clipTimer);
+    clipTimer = setTimeout(async () => {
+      try { if (document.hasFocus() && (await navigator.clipboard.readText?.()) === text) await navigator.clipboard.writeText(''); } catch {}
+    }, 60000);
+  } catch { toast('复制失败，请长按手动复制'); }
+}
+
+// ---------- 编辑 ----------
+let editing = null;
+function openEditor(entry){
+  editing = entry || null;
+  $('eHead').textContent = entry ? '编辑' : '添加密码';
+  $('eName').value = entry?.name || '';
+  $('eUser').value = entry?.user || '';
+  $('ePw').value = entry?.pw || '';
+  $('eUrl').value = entry?.url || '';
+  $('eNote').value = entry?.note || '';
+  $('ePw').type = 'password'; $('eToggle').textContent = '显示';
+  $('genBox').classList.add('hidden');
+  paintMeter($('eMeter'), $('eMeterLabel'), $('ePw').value);
+  $('editDlg').showModal();
+  if (!entry) $('eName').focus();
+}
+$('addBtn').addEventListener('click', () => openEditor(null));
+$('eToggle').addEventListener('click', () => {
+  const show = $('ePw').type === 'password';
+  $('ePw').type = show ? 'text' : 'password'; $('eToggle').textContent = show ? '隐藏' : '显示';
+});
+$('ePw').addEventListener('input', () => paintMeter($('eMeter'), $('eMeterLabel'), $('ePw').value));
+$('eGenToggle').addEventListener('click', () => {
+  $('genBox').classList.remove('hidden'); runGen();
+});
+$('editForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = $('eName').value.trim(); if (!name) return;
+  const now = Date.now();
+  const data = { name, user:$('eUser').value.trim(), pw:$('ePw').value, url:$('eUrl').value.trim(), note:$('eNote').value };
+  if (editing) Object.assign(editing, data, { updated: now });
+  else session.vault.entries.push({ id: crypto.randomUUID ? crypto.randomUUID() : b64(rand(16)), ...data, created: now, updated: now });
+  await persist(); $('editDlg').close(); renderList(); toast('已保存');
+});
+
+// ---------- 密码生成 ----------
+const SETS = { upper:'ABCDEFGHIJKLMNOPQRSTUVWXYZ', lower:'abcdefghijklmnopqrstuvwxyz', digit:'0123456789', sym:'!@#$%^&*()-_=+[]{};:,.?/~' };
+const AMBIG = /[Il1O0o|`'"]/g;
+function randInt(n){ // 无偏随机
+  const max = Math.floor(0x100000000 / n) * n, buf = new Uint32Array(1);
+  do crypto.getRandomValues(buf); while (buf[0] >= max);
+  return buf[0] % n;
+}
+function generate(len, opt){
+  let sets = Object.keys(SETS).filter(k => opt[k]).map(k => opt.amb ? SETS[k].replace(AMBIG,'') : SETS[k]);
+  if (!sets.length) sets = [SETS.lower];
+  const pool = sets.join('');
+  const out = sets.map(s => s[randInt(s.length)]); // 每类至少一个
+  while (out.length < len) out.push(pool[randInt(pool.length)]);
+  for (let i = out.length - 1; i > 0; i--) { const j = randInt(i + 1); [out[i], out[j]] = [out[j], out[i]]; }
+  return out.join('');
+}
+function runGen(){
+  $('gLenV').textContent = $('gLen').value;
+  $('ePw').value = generate(+$('gLen').value, { upper:$('gUpper').checked, lower:$('gLower').checked, digit:$('gDigit').checked, sym:$('gSym').checked, amb:$('gAmb').checked });
+  $('ePw').type = 'text'; $('eToggle').textContent = '隐藏';
+  paintMeter($('eMeter'), $('eMeterLabel'), $('ePw').value);
+}
+['gLen','gUpper','gLower','gDigit','gSym','gAmb'].forEach(id => $(id).addEventListener('input', runGen));
+$('gRun').addEventListener('click', runGen);
+
+function strength(pw){
+  if (!pw) return 0;
+  let pool = 0;
+  if (/[a-z]/.test(pw)) pool += 26; if (/[A-Z]/.test(pw)) pool += 26;
+  if (/\d/.test(pw)) pool += 10; if (/[^a-zA-Z\d]/.test(pw)) pool += 30;
+  const uniq = new Set(pw).size;
+  return Math.log2(Math.max(pool, 2)) * Math.min(pw.length, uniq * 2);
+}
+function paintMeter(bar, label, pw){
+  const bits = strength(pw);
+  const [w, c, t] = bits < 40 ? [25,'#c0392b','弱'] : bits < 60 ? [50,'#d68910','一般'] : bits < 80 ? [75,'#7cb342','强'] : [100,'#2e7d32','很强'];
+  bar.style.width = pw ? w + '%' : '0'; bar.style.background = c;
+  if (label) label.textContent = pw ? `强度：${t}` : '';
+}
+
+// ---------- 设置 ----------
+$('settingsBtn').addEventListener('click', () => { $('sAutoLock').value = String(prefs.autoLock); $('settingsDlg').showModal(); });
+$('lockBtn').addEventListener('click', lock);
+$('sAutoLock').addEventListener('change', e => { prefs.autoLock = +e.target.value; savePrefs(); toast('已更新'); });
+
+$('sExport').addEventListener('click', async () => {
+  const raw = safeGet(STORE_KEY); if (!raw) return;
+  const name = `密码本备份-${new Date().toISOString().slice(0,10)}.json`;
+  const file = new File([raw], name, { type:'application/json' });
+  try {
+    if (navigator.canShare?.({ files:[file] })) { await navigator.share({ files:[file], title:name }); return; }
+  } catch (err) { if (err.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name;
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  toast('备份已导出（仍是加密的）');
+});
+
+let pendingImport = null;
+$('sImport').addEventListener('click', () => { $('importFile').value = ''; $('importFile').click(); });
+$('importFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const o = JSON.parse(await f.text());
+    if (!validBlob(o)) throw 0;
+    pendingImport = o; $('impPw').value = ''; $('impErr').textContent = '';
+    $('settingsDlg').close(); $('impDlg').showModal();
+  } catch { toast('不是有效的密码本备份文件'); }
+});
+$('impForm').addEventListener('submit', async e => {
+  e.preventDefault(); $('impErr').textContent = '正在解密…';
+  try {
+    const r = await open(pendingImport, $('impPw').value);
+    const incoming = Array.isArray(r.data.entries) ? r.data.entries : [];
+    let added = 0, updated = 0;
+    for (const inc of incoming) {
+      if (!inc || typeof inc.name !== 'string') continue;
+      const ex = session.vault.entries.find(x => x.id === inc.id);
+      if (!ex) { session.vault.entries.push(inc); added++; }
+      else if ((inc.updated||0) > (ex.updated||0)) { Object.assign(ex, inc); updated++; }
+    }
+    await persist(); renderList(); pendingImport = null; $('impDlg').close();
+    toast(`导入完成：新增 ${added}，更新 ${updated}`);
+  } catch { $('impErr').textContent = '密码错误或文件已损坏'; }
+});
+
+$('sChangePw').addEventListener('click', () => {
+  ['pwOld','pwNew','pwNew2'].forEach(id => $(id).value = ''); $('pwErr').textContent = '';
+  $('settingsDlg').close(); $('pwDlg').showModal();
+});
+$('pwForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const a = $('pwNew').value, b = $('pwNew2').value;
+  if (a.length < 8) return $('pwErr').textContent = '新主密码至少 8 位';
+  if (a !== b) return $('pwErr').textContent = '两次输入不一致';
+  $('pwErr').textContent = '正在验证…';
+  try { await open(JSON.parse(safeGet(STORE_KEY)), $('pwOld').value); }
+  catch { return $('pwErr').textContent = '当前主密码错误'; }
+  const salt = rand(16);
+  session.key = await deriveKey(a, salt, ITER); session.salt = salt; session.iter = ITER;
+  await persist(); $('pwDlg').close(); toast('主密码已修改，记得重新导出备份');
+});
+
+$('sWipe').addEventListener('click', () => {
+  if (!confirm('将永久删除本设备上的所有密码，无法恢复。确定继续？')) return;
+  if (prompt('请输入「删除」二字确认') !== '删除') return;
+  safeDel(STORE_KEY); session = null; closeAllDialogs(); show('setup');
+});
+
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => b.closest('dialog').close()));
+
+// ---------- 自动锁定 ----------
+let lastActive = Date.now(), hiddenAt = 0;
+function touch(){ lastActive = Date.now(); }
+['pointerdown','keydown','scroll','input'].forEach(ev => addEventListener(ev, touch, { passive:true, capture:true }));
+setInterval(() => { if (session && prefs.autoLock > 0 && Date.now() - lastActive > prefs.autoLock * 1000) lock(); }, 5000);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { hiddenAt = Date.now(); if (session && prefs.autoLock === 0) lock(); }
+  else if (session && prefs.autoLock > 0 && Date.now() - hiddenAt > prefs.autoLock * 1000) lock();
+});
+
+async function requestPersistentStorage(){ try { await navigator.storage?.persist?.(); } catch {} }
+
+// ---------- 启动 ----------
+if (!window.isSecureContext || !crypto.subtle) {
+  document.body.innerHTML = '<div class="wrap auth"><h1>无法运行</h1><p class="sub">密码本需要在 HTTPS（或本机 localhost）下打开，才能使用浏览器的加密功能。</p></div>';
+  return;
+}
+let existing = null;
+try { existing = JSON.parse(safeGet(STORE_KEY)); } catch {}
+show(validBlob(existing) ? 'lock' : 'setup');
+requestPersistentStorage();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>
