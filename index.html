@@ -109,7 +109,13 @@ dialog{overflow:auto}
 .catrow{display:flex;align-items:center;gap:6px;padding:8px 8px 8px 14px;border-bottom:1px solid var(--line)}
 .catrow:last-child{border-bottom:0}
 .catrow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.catrow .cnt{font-size:12px;color:var(--muted);margin-right:4px}
+.catrow .cnt{font-size:12px;color:var(--muted);margin-right:4px;white-space:nowrap}
+.catrow .btn.small{padding:6px 9px}
+.catrow.sub{padding-left:30px;background:color-mix(in srgb,var(--field) 70%,var(--card))}
+.catrow.sub .nm{color:var(--muted)}
+.chips.sub{margin-top:8px}
+.chips.sub .chip{font-size:13px;padding:4px 10px;background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.chips.sub .chip.on{background:var(--card);color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}
 select.inline{width:auto;padding:6px 10px;font-size:15px;background:var(--card)}
 .pcard{background:var(--field);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
 .pcard.off{opacity:.45}
@@ -176,6 +182,7 @@ select.inline{width:auto;padding:6px 10px;font-size:15px;background:var(--card)}
     </div>
     <input id="search" class="search" type="search" data-i18n-ph="searchPh" autocomplete="off">
     <div class="chips" id="chips"></div>
+    <div class="chips sub hidden" id="subchips"></div>
   </header>
   <div class="wrap" style="padding-top:0;padding-bottom:110px">
     <div class="count" id="count"></div>
@@ -353,7 +360,8 @@ zh: {
   cryptoNote:'数据使用 AES-256-GCM 加密，密钥由主密码经 PBKDF2-SHA256（60 万次）派生，只保存在本设备上。',
   pwOldPh:'当前主密码', pwNewPh:'新主密码（至少 8 位）', pwNew2Ph:'再输入一次新主密码', confirmChange:'确认修改',
   importBackupTitle:'导入备份', impSub:'请输入<b>创建该备份时</b>使用的主密码。导入的条目会合并到当前密码本。', impPwPh:'备份的主密码', import:'导入',
-  catNewPh:'新分类名称，例如：工作', catDelNote:'删除分类不会删除里面的密码，它们会变成「未分类」。',
+  catNewPh:'新分类名称，例如：工作', catDelNote:'点 ＋ 可以在分类下建子分类。删除不会删掉密码：子分类里的密码会移回上一级，大分类里的密码会变成「未分类」。',
+  directOnly:'未细分', addSub:'新建子分类', newSubPrompt:'在「{name}」下新建子分类', confirmDelSub:'删除子分类「{name}」？', confirmDelSubN:'里面的 {n} 条密码会移回「{parent}」。', confirmDelCatTree:'删除分类「{name}」和它的 {s} 个子分类？',
   pasteTitle:'从记事本导入', pasteHelp:'在「备忘录」打开记密码的笔记 → 全选 → 拷贝，再粘贴到下面。内容只在本机识别，不会上传。',
   pastePh:'支持多种写法，例如：\n\n微信\n账号：abc123\n密码：xxxxxx\n\n邮箱 账号:me@mail.com 密码:xxxx\n\n淘宝 myname mypass',
   pasteClip:'从剪贴板粘贴', detect:'识别', back:'返回修改', importToCat:'导入到分类', reviewHelp:'请逐条检查，识别不对的可以直接改，不要的取消勾选。',
@@ -391,7 +399,8 @@ en: {
   cryptoNote:'Data is encrypted with AES-256-GCM. The key is derived from your master password with PBKDF2-SHA256 (600,000 rounds) and stays on this device.',
   pwOldPh:'Current master password', pwNewPh:'New master password (8+ characters)', pwNew2Ph:'Confirm new master password', confirmChange:'Change password',
   importBackupTitle:'Import backup', impSub:'Enter the master password that was used <b>when this backup was made</b>. Its entries will be merged into this vault.', impPwPh:"Backup's master password", import:'Import',
-  catNewPh:'New category, e.g. Work', catDelNote:'Deleting a category keeps its passwords; they become "Uncategorized".',
+  catNewPh:'New category, e.g. Work', catDelNote:'Tap ＋ to add a subcategory. Deleting never removes passwords: those in a subcategory move up to its parent; those in a top-level category become "Uncategorized".',
+  directOnly:'Other', addSub:'Add subcategory', newSubPrompt:'New subcategory under "{name}"', confirmDelSub:'Delete subcategory "{name}"?', confirmDelSubN:' Its {n} passwords will move back to "{parent}".', confirmDelCatTree:'Delete category "{name}" and its {s} subcategories?',
   pasteTitle:'Import from Notes', pasteHelp:'Open the note with your passwords → Select All → Copy, then paste below. Text is parsed on this device only and never uploaded.',
   pastePh:'Many formats work, e.g.:\n\nGmail\nUsername: me@gmail.com\nPassword: xxxxxx\n\nBank user: me123 password: xxxx\n\nAmazon myname mypass',
   pasteClip:'Paste from clipboard', detect:'Detect', back:'Back', importToCat:'Import into category', reviewHelp:'Check each item. Fix anything detected wrong, and untick what you don\'t want.',
@@ -543,26 +552,51 @@ const CAT_DEFS = [
   { key:'bank',   zh:'银行金融', en:'Banking',        re:/银行|bank|支付宝|alipay|paypal|信用卡|证券|基金|保险|wise|招行|工行|建行|农行|中行/i },
 ];
 const RULE_ORDER = ['apple', 'email', 'bank', 'social', 'shop', 'work'];
-let catFilter = 'all';   // 'all' | '' (未分类) | 分类 id
+// catFilter: 'all' | '' (未分类) | 分类或子分类 id | 'd:'+大分类id（只看直接放在大分类里、没细分的）
+let catFilter = 'all';
 function ensureCats(){
-  if (Array.isArray(session.vault.categories)) return false;
-  session.vault.categories = CAT_DEFS.map(d => ({ id: newId(), key: d.key, name: d[lang] }));
-  return true;
+  let changed = false;
+  if (!Array.isArray(session.vault.categories)) {
+    session.vault.categories = CAT_DEFS.map(d => ({ id: newId(), key: d.key, name: d[lang] }));
+    changed = true;
+  }
+  // 只允许一层子分类：父分类必须存在且本身是大分类
+  for (const c of session.vault.categories) {
+    if (c.parent) { const p = session.vault.categories.find(x => x.id === c.parent); if (!p || p.parent) { delete c.parent; changed = true; } }
+  }
+  return changed;
 }
 const cats = () => session.vault.categories;
 const catById = id => cats().find(c => c.id === id);
+const topCats = () => cats().filter(c => !c.parent);
+const subsOf = pid => cats().filter(c => c.parent === pid);
+const siblingsOf = c => cats().filter(x => (x.parent || '') === (c.parent || ''));
 const catOf = e => (e.cat && catById(e.cat)) ? e.cat : '';
-function addCategory(name){
+const topOf = id => { const c = catById(id); return c ? (c.parent || c.id) : ''; };
+function catLabel(id){
+  const c = catById(id); if (!c) return '';
+  const p = c.parent && catById(c.parent);
+  return p ? `${p.name} › ${c.name}` : c.name;
+}
+function inFilter(e, f){
+  const c = catOf(e);
+  if (f === 'all') return true;
+  if (f === '') return !c;
+  if (f.startsWith('d:')) return c === f.slice(2);
+  return c === f || (c && catById(c).parent === f);
+}
+function addCategory(name, parent = ''){
   name = name.trim().slice(0, 20); if (!name) return '';
-  const ex = cats().find(c => c.name === name); if (ex) return ex.id;
-  const c = { id: newId(), name }; cats().push(c); return c.id;
+  const ex = cats().find(c => c.name === name && (c.parent || '') === parent); if (ex) return ex.id;
+  const c = { id: newId(), name }; if (parent) c.parent = parent;
+  cats().push(c); return c.id;
 }
 function guessCat(e){
   const s = [e.name, e.url].join(' ');
   for (const k of RULE_ORDER) {
     const d = CAT_DEFS.find(x => x.key === k);
     if (!d.re.test(s)) continue;
-    const c = cats().find(c => c.key === k || c.name === d.zh || c.name === d.en);
+    const c = topCats().find(c => c.key === k || c.name === d.zh || c.name === d.en);
     if (c) return c.id;
   }
   return '';
@@ -570,7 +604,8 @@ function guessCat(e){
 function fillCatSelect(sel, value, { withNew = true, withAuto = false } = {}){
   const opts = [];
   if (withAuto) opts.push(['__auto', t('autoDetect')]);
-  opts.push(['', t('uncategorized')], ...cats().map(c => [c.id, c.name]));
+  opts.push(['', t('uncategorized')]);
+  for (const c of topCats()) { opts.push([c.id, c.name]); for (const s of subsOf(c.id)) opts.push([s.id, ' ↳ ' + s.name]); }
   if (withNew) opts.push(['__new', t('newCatOpt')]);
   sel.replaceChildren(...opts.map(([v, txt]) => { const o = document.createElement('option'); o.value = v; o.textContent = txt; return o; }));
   sel.value = value; if (sel.value !== value) sel.value = '';
@@ -595,28 +630,44 @@ function colorFor(s){ let h=0; for (const c of s) h = (h*31 + c.codePointAt(0)) 
 
 function enterMain(){ if (ensureCats()) persist(); show('main'); renderList(); touch(); }
 
+function chip(id, name, count, on){
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (on ? ' on' : '');
+  b.append(name); const s = document.createElement('span'); s.className = 'n'; s.textContent = count; b.append(s);
+  b.addEventListener('click', () => { catFilter = id; renderList(); });
+  return b;
+}
 function renderChips(){
   const es = session.vault.entries;
-  const n = id => es.filter(e => catOf(e) === id).length;
-  const defs = [['all', t('all'), es.length], ...cats().map(c => [c.id, c.name, n(c.id)])];
-  const unc = n(''); if (unc) defs.push(['', t('uncategorized'), unc]);
-  if (!defs.some(d => d[0] === catFilter)) catFilter = 'all';
-  const chips = defs.map(([id, name, count]) => {
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (id === catFilter ? ' on' : '');
-    b.append(name); const s = document.createElement('span'); s.className = 'n'; s.textContent = count; b.append(s);
-    b.addEventListener('click', () => { catFilter = id; renderList(); });
-    return b;
-  });
+  const n = f => es.filter(e => inFilter(e, f)).length;
+  // 校验当前筛选是否还有效
+  const f = catFilter;
+  const valid = f === 'all' || f === '' || (f.startsWith('d:') ? !!catById(f.slice(2)) : !!catById(f));
+  if (!valid || (f === '' && !n(''))) catFilter = 'all';
+  const activeTop = catFilter === 'all' || catFilter === '' ? null : topOf(catFilter.startsWith('d:') ? catFilter.slice(2) : catFilter);
+
+  const top = [chip('all', t('all'), es.length, catFilter === 'all'),
+    ...topCats().map(c => chip(c.id, c.name, n(c.id), activeTop === c.id))];
+  if (n('')) top.push(chip('', t('uncategorized'), n(''), catFilter === ''));
   const add = document.createElement('button'); add.type = 'button'; add.className = 'chip add'; add.textContent = t('addCatChip');
   add.addEventListener('click', openCatManager);
-  $('chips').replaceChildren(...chips, add);
+  $('chips').replaceChildren(...top, add);
+
+  // 第二排：子分类
+  const subs = activeTop ? subsOf(activeTop) : [];
+  $('subchips').classList.toggle('hidden', !subs.length);
+  if (!subs.length) { $('subchips').replaceChildren(); return; }
+  const row = [chip(activeTop, t('all'), n(activeTop), catFilter === activeTop),
+    ...subs.map(s => chip(s.id, s.name, n(s.id), catFilter === s.id))];
+  const direct = n('d:' + activeTop);
+  if (direct) row.push(chip('d:' + activeTop, t('directOnly'), direct, catFilter === 'd:' + activeTop));
+  $('subchips').replaceChildren(...row);
 }
 
 function renderList(){
   renderChips();
   const q = $('search').value.trim().toLowerCase();
   const all = session.vault.entries.slice().sort((a,b) => a.name.localeCompare(b.name, locale()));
-  let items = catFilter === 'all' ? all : all.filter(e => catOf(e) === catFilter);
+  let items = all.filter(e => inFilter(e, catFilter));
   if (q) items = items.filter(e => [e.name,e.user,e.url,e.note].some(x => (x||'').toLowerCase().includes(q)));
   const list = $('list');
   list.replaceChildren(...items.map(e => {
@@ -626,7 +677,12 @@ function renderList(){
     const box = document.createElement('div'); box.style.minWidth = '0';
     const tt = document.createElement('div'); tt.className = 't'; tt.textContent = e.name;
     const s = document.createElement('div'); s.className = 's';
-    if (catFilter === 'all' && catOf(e)) { const tg = document.createElement('span'); tg.className = 'tagcat'; tg.textContent = catById(e.cat).name; s.append(tg); }
+    if (catOf(e) && catOf(e) !== catFilter && 'd:' + catOf(e) !== catFilter) {
+      // 在「全部」里显示完整路径；在大分类里只显示子分类名
+      const c = catById(e.cat);
+      const label = catFilter === 'all' || catFilter === '' ? catLabel(e.cat) : c.name;
+      const tg = document.createElement('span'); tg.className = 'tagcat'; tg.textContent = label; s.append(tg);
+    }
     s.append(e.user || e.url || '—');
     box.append(tt, s); b.append(av, box);
     b.addEventListener('click', () => openDetail(e.id));
@@ -661,7 +717,7 @@ function openDetail(id){
 }
 bindCatSelect($('dCat'), async v => {
   current.cat = v; current.updated = Date.now();
-  await persist(); renderList(); toast(v ? t('movedTo', { name: catById(v).name }) : t('setUncat'));
+  await persist(); renderList(); toast(v ? t('movedTo', { name: catLabel(v) }) : t('setUncat'));
 });
 $('dShowPw').addEventListener('click', () => {
   const showNow = !$('dShowPw').dataset.shown;
@@ -700,7 +756,7 @@ function openEditor(entry){
   editing = entry || null;
   $('eHead').textContent = entry ? t('edit') : t('addTitle');
   $('eName').value = entry?.name || '';
-  fillCatSelect($('eCat'), entry ? catOf(entry) : (catFilter !== 'all' ? catFilter : ''));
+  fillCatSelect($('eCat'), entry ? catOf(entry) : (catFilter === 'all' ? '' : catFilter.replace(/^d:/, '')));
   $('eUser').value = entry?.user || '';
   $('ePw').value = entry?.pw || '';
   $('eUrl').value = entry?.url || '';
@@ -802,10 +858,16 @@ $('impForm').addEventListener('submit', async e => {
     const r = await open(pendingImport, $('impPw').value);
     const incoming = Array.isArray(r.data.entries) ? r.data.entries : [];
     const remap = {};
-    for (const c of (Array.isArray(r.data.categories) ? r.data.categories : [])) {
-      if (!c || typeof c.id !== 'string' || typeof c.name !== 'string' || catById(c.id)) continue;
-      const same = cats().find(x => x.name === c.name || (c.key && x.key === c.key));
-      if (same) remap[c.id] = same.id; else cats().push({ id: c.id, name: c.name.slice(0, 20), ...(c.key ? { key: c.key } : {}) });
+    const incCats = (Array.isArray(r.data.categories) ? r.data.categories : [])
+      .filter(c => c && typeof c.id === 'string' && typeof c.name === 'string');
+    // 先合并大分类，再合并子分类
+    for (const c of [...incCats.filter(c => !c.parent), ...incCats.filter(c => c.parent)]) {
+      if (catById(c.id)) continue;
+      let parent = c.parent ? (remap[c.parent] || c.parent) : '';
+      if (parent && (!catById(parent) || catById(parent).parent)) parent = '';
+      const same = cats().find(x => (x.parent || '') === parent && (x.name === c.name || (!parent && c.key && x.key === c.key)));
+      if (same) remap[c.id] = same.id;
+      else cats().push({ id: c.id, name: c.name.slice(0, 20), ...(c.key && !parent ? { key: c.key } : {}), ...(parent ? { parent } : {}) });
     }
     let added = 0, updated = 0;
     for (const inc of incoming) {
@@ -982,31 +1044,64 @@ function openCatManager(){
   if ($('settingsDlg').open) $('settingsDlg').close();
   $('catNew').value = ''; renderCatList(); $('catDlg').showModal();
 }
-function renderCatList(){
+function catRow(c){
   const es = session.vault.entries;
-  const list = cats().map((c, i) => {
-    const row = document.createElement('div'); row.className = 'catrow';
-    const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = c.name;
-    const cnt = document.createElement('span'); cnt.className = 'cnt'; cnt.textContent = t('nItems', { n: es.filter(e => e.cat === c.id).length });
-    const btn = (label, fn, cls = '') => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small ' + cls; b.textContent = label; b.addEventListener('click', fn); return b; };
-    const up = btn('↑', async () => { [cats()[i - 1], cats()[i]] = [cats()[i], cats()[i - 1]]; await persist(); renderCatList(); });
-    up.disabled = i === 0; up.setAttribute('aria-label', t('moveUp'));
-    row.append(nm, cnt, up,
-      btn(t('rename'), async () => {
-        const v = (prompt(t('renamePrompt'), c.name) || '').trim().slice(0, 20);
-        if (!v || v === c.name) return;
-        if (cats().some(x => x.name === v)) return toast(t('catExists'));
-        c.name = v; await persist(); renderCatList();
-      }),
-      btn(t('delete'), async () => {
+  const isSub = !!c.parent;
+  const row = document.createElement('div'); row.className = 'catrow' + (isSub ? ' sub' : '');
+  const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = (isSub ? '↳ ' : '') + c.name;
+  const cnt = document.createElement('span'); cnt.className = 'cnt';
+  cnt.textContent = t('nItems', { n: es.filter(e => inFilter(e, c.id)).length });
+  const btn = (label, fn, cls = '', aria = '') => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small ' + cls; b.textContent = label;
+    if (aria) { b.setAttribute('aria-label', aria); b.title = aria; }
+    b.addEventListener('click', fn); return b;
+  };
+  const sibs = siblingsOf(c), si = sibs.indexOf(c);
+  const up = btn('↑', async () => {
+    const a = cats().indexOf(sibs[si - 1]), b = cats().indexOf(c);
+    [cats()[a], cats()[b]] = [cats()[b], cats()[a]]; await persist(); renderCatList();
+  }, '', t('moveUp'));
+  up.disabled = si === 0;
+  const parts = [nm, cnt, up];
+  if (!isSub) parts.push(btn('＋', async () => {
+    const v = (prompt(t('newSubPrompt', { name: c.name })) || '').trim().slice(0, 20);
+    if (!v) return;
+    if (subsOf(c.id).some(x => x.name === v)) return toast(t('catExists'));
+    addCategory(v, c.id); await persist(); renderCatList();
+  }, '', t('addSub')));
+  parts.push(
+    btn(t('rename'), async () => {
+      const v = (prompt(t('renamePrompt'), c.name) || '').trim().slice(0, 20);
+      if (!v || v === c.name) return;
+      if (sibs.some(x => x.name === v)) return toast(t('catExists'));
+      c.name = v; await persist(); renderCatList();
+    }),
+    btn(t('delete'), async () => {
+      if (isSub) {
+        // 删子分类：里面的密码移回上一级
         const n = es.filter(e => e.cat === c.id).length;
-        if (!confirm(t('confirmDelCat', { name: c.name }) + (n ? t('confirmDelCatN', { n }) : ''))) return;
+        const p = catById(c.parent);
+        if (!confirm(t('confirmDelSub', { name: c.name }) + (n ? t('confirmDelSubN', { n, parent: p.name }) : ''))) return;
+        for (const e of es) if (e.cat === c.id) e.cat = p.id;
         session.vault.categories = cats().filter(x => x.id !== c.id);
-        for (const e of es) if (e.cat === c.id) e.cat = '';
-        await persist(); renderCatList();
-      }, 'danger'));
-    return row;
-  });
+      } else {
+        // 删大分类：连同子分类一起删，里面的密码变成未分类
+        const subs = subsOf(c.id), ids = new Set([c.id, ...subs.map(s => s.id)]);
+        const n = es.filter(e => ids.has(e.cat)).length;
+        const msg = (subs.length ? t('confirmDelCatTree', { name: c.name, s: subs.length }) : t('confirmDelCat', { name: c.name }))
+          + (n ? t('confirmDelCatN', { n }) : '');
+        if (!confirm(msg)) return;
+        for (const e of es) if (ids.has(e.cat)) e.cat = '';
+        session.vault.categories = cats().filter(x => !ids.has(x.id));
+      }
+      await persist(); renderCatList();
+    }, 'danger'));
+  row.append(...parts);
+  return row;
+}
+function renderCatList(){
+  const list = [];
+  for (const c of topCats()) { list.push(catRow(c)); for (const s of subsOf(c.id)) list.push(catRow(s)); }
   if (!list.length) { const p = document.createElement('div'); p.className = 'catrow'; p.textContent = t('noCats'); list.push(p); }
   $('catList').replaceChildren(...list);
 }
@@ -1015,7 +1110,7 @@ $('catDlg').addEventListener('close', () => { if (session) renderList(); });
 $('catAddForm').addEventListener('submit', async e => {
   e.preventDefault();
   const v = $('catNew').value.trim(); if (!v) return;
-  if (cats().some(c => c.name === v)) return toast(t('catExists'));
+  if (topCats().some(c => c.name === v)) return toast(t('catExists'));
   addCategory(v); await persist(); $('catNew').value = ''; renderCatList();
 });
 $('sAutoCat').addEventListener('click', async () => {
