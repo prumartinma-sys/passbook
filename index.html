@@ -113,6 +113,7 @@ dialog{overflow:auto}
 .catrow .btn.small{padding:6px 9px}
 .catrow.sub{padding-left:30px;background:color-mix(in srgb,var(--field) 70%,var(--card))}
 .catrow.sub .nm{color:var(--muted)}
+.catrow .alt{font-size:12px;color:var(--muted)}
 .chips.sub{margin-top:8px}
 .chips.sub .chip{font-size:13px;padding:4px 10px;background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
 .chips.sub .chip.on{background:var(--card);color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}
@@ -295,13 +296,22 @@ select.inline{width:auto;padding:6px 10px;font-size:15px;background:var(--card)}
 <dialog id="catDlg">
   <div class="sheet">
     <div class="sheet-head"><h3 data-i18n="manageCats"></h3><button class="btn small" type="button" data-close data-i18n="done"></button></div>
-    <form id="catAddForm" class="row">
-      <input class="grow" id="catNew" type="text" data-i18n-ph="catNewPh" maxlength="20" autocomplete="off">
-      <button class="btn primary small" type="submit" data-i18n="add"></button>
-    </form>
+    <button class="btn primary" type="button" id="catAddBtn" data-i18n="newCat"></button>
     <div class="menu" id="catList"></div>
     <p class="meter-label" style="margin:0" data-i18n="catDelNote"></p>
   </div>
+</dialog>
+
+<!-- 分类名称（中英文）/ Category names -->
+<dialog id="catEditDlg">
+  <form class="sheet" id="catEditForm" method="dialog">
+    <div class="sheet-head"><h3 id="ceTitle"></h3><button class="btn small" type="button" id="ceCancel" data-i18n="cancel"></button></div>
+    <div class="field"><label for="ceZh" data-i18n="nameZh"></label><input id="ceZh" type="text" maxlength="20" autocomplete="off" data-i18n-ph="phZh"></div>
+    <div class="field"><label for="ceEn" data-i18n="nameEn"></label><input id="ceEn" type="text" maxlength="20" autocomplete="off" autocapitalize="words" data-i18n-ph="phEn"></div>
+    <p class="meter-label" style="margin:0" data-i18n="nameHint"></p>
+    <div class="err" id="ceErr"></div>
+    <button class="btn primary" type="submit" data-i18n="save"></button>
+  </form>
 </dialog>
 
 <!-- 从记事本导入 / Paste import -->
@@ -359,9 +369,8 @@ zh: {
   importBackup:'从备份导入（合并）', changePw:'修改主密码', wipe:'清除所有数据',
   cryptoNote:'数据使用 AES-256-GCM 加密，密钥由主密码经 PBKDF2-SHA256（60 万次）派生，只保存在本设备上。',
   pwOldPh:'当前主密码', pwNewPh:'新主密码（至少 8 位）', pwNew2Ph:'再输入一次新主密码', confirmChange:'确认修改',
-  importBackupTitle:'导入备份', impSub:'请输入<b>创建该备份时</b>使用的主密码。导入的条目会合并到当前密码本。', impPwPh:'备份的主密码', import:'导入',
-  catNewPh:'新分类名称，例如：工作', catDelNote:'点 ＋ 可以在分类下建子分类。删除不会删掉密码：子分类里的密码会移回上一级，大分类里的密码会变成「未分类」。',
-  directOnly:'未细分', addSub:'新建子分类', newSubPrompt:'在「{name}」下新建子分类', confirmDelSub:'删除子分类「{name}」？', confirmDelSubN:'里面的 {n} 条密码会移回「{parent}」。', confirmDelCatTree:'删除分类「{name}」和它的 {s} 个子分类？',
+  importBackupTitle:'导入备份', impSub:'请输入<b>创建该备份时</b>使用的主密码。导入的条目会合并到当前密码本。', impPwPh:'备份的主密码', import:'导入', catDelNote:'点 ＋ 可以在分类下建子分类。删除不会删掉密码：子分类里的密码会移回上一级，大分类里的密码会变成「未分类」。',
+  directOnly:'未细分', newCat:'＋ 新建分类', editCat:'编辑分类名称', nameZh:'中文名称', phZh:'例如：家庭', phEn:'例如：Family', nameEn:'英文名称', nameRequired:'请至少填一个名称', nameHint:'至少填一个。切换语言时会显示对应的名称；只填了一个的话，两种语言都显示它。', addSub:'新建子分类', newSubPrompt:'在「{name}」下新建子分类', confirmDelSub:'删除子分类「{name}」？', confirmDelSubN:'里面的 {n} 条密码会移回「{parent}」。', confirmDelCatTree:'删除分类「{name}」和它的 {s} 个子分类？',
   pasteTitle:'从记事本导入', pasteHelp:'在「备忘录」打开记密码的笔记 → 全选 → 拷贝，再粘贴到下面。内容只在本机识别，不会上传。',
   pastePh:'支持多种写法，例如：\n\n微信\n账号：abc123\n密码：xxxxxx\n\n邮箱 账号:me@mail.com 密码:xxxx\n\n淘宝 myname mypass',
   pasteClip:'从剪贴板粘贴', detect:'识别', back:'返回修改', importToCat:'导入到分类', reviewHelp:'请逐条检查，识别不对的可以直接改，不要的取消勾选。',
@@ -374,8 +383,7 @@ zh: {
   backupFile:'密码本备份', exported:'备份已导出（仍是加密的）', badBackup:'不是有效的密码本备份文件', decrypting:'正在解密…',
   importDone:'导入完成：新增 {a}，更新 {u}', badBackupPw:'密码错误或文件已损坏', errNewMin8:'新主密码至少 8 位', verifying:'正在验证…',
   wrongCurrent:'当前主密码错误', pwChanged:'主密码已修改，记得重新导出备份',
-  wipeConfirm:'将永久删除本设备上的所有密码，无法恢复。确定继续？', wipePrompt:'请输入「删除」二字确认', wipeWord:'删除',
-  newCatPrompt:'新分类名称', renamePrompt:'新的分类名称', rename:'改名', moveUp:'上移', catExists:'已经有这个分类了',
+  wipeConfirm:'将永久删除本设备上的所有密码，无法恢复。确定继续？', wipePrompt:'请输入「删除」二字确认', wipeWord:'删除', rename:'改名', moveUp:'上移', catExists:'已经有这个分类了',
   confirmDelCat:'删除分类「{name}」？', confirmDelCatN:'里面的 {n} 条密码会变成「未分类」，不会被删除。', noCats:'还没有分类',
   allHaveCat:'所有条目都已经有分类了', autoCatDone:'自动分好了 {n} 条', autoCatRest:'，还有 {m} 条没认出来，请点进去手动选分类',
   clipFail:'无法读取剪贴板，请长按输入框粘贴', nothingFound:'没识别到内容，请检查粘贴的文字', pasteSummary:'识别出 {a} 条，已选 {b} 条',
@@ -398,9 +406,8 @@ en: {
   importBackup:'Import backup (merge)', changePw:'Change master password', wipe:'Erase all data',
   cryptoNote:'Data is encrypted with AES-256-GCM. The key is derived from your master password with PBKDF2-SHA256 (600,000 rounds) and stays on this device.',
   pwOldPh:'Current master password', pwNewPh:'New master password (8+ characters)', pwNew2Ph:'Confirm new master password', confirmChange:'Change password',
-  importBackupTitle:'Import backup', impSub:'Enter the master password that was used <b>when this backup was made</b>. Its entries will be merged into this vault.', impPwPh:"Backup's master password", import:'Import',
-  catNewPh:'New category, e.g. Work', catDelNote:'Tap ＋ to add a subcategory. Deleting never removes passwords: those in a subcategory move up to its parent; those in a top-level category become "Uncategorized".',
-  directOnly:'Other', addSub:'Add subcategory', newSubPrompt:'New subcategory under "{name}"', confirmDelSub:'Delete subcategory "{name}"?', confirmDelSubN:' Its {n} passwords will move back to "{parent}".', confirmDelCatTree:'Delete category "{name}" and its {s} subcategories?',
+  importBackupTitle:'Import backup', impSub:'Enter the master password that was used <b>when this backup was made</b>. Its entries will be merged into this vault.', impPwPh:"Backup's master password", import:'Import', catDelNote:'Tap ＋ to add a subcategory. Deleting never removes passwords: those in a subcategory move up to its parent; those in a top-level category become "Uncategorized".',
+  directOnly:'Other', newCat:'＋ New category', editCat:'Edit category name', nameZh:'Chinese name', phZh:'e.g. 家庭', phEn:'e.g. Family', nameEn:'English name', nameRequired:'Enter at least one name', nameHint:'Fill in at least one. The app shows the name for the current language; if only one is filled in, it is shown in both.', addSub:'Add subcategory', newSubPrompt:'New subcategory under "{name}"', confirmDelSub:'Delete subcategory "{name}"?', confirmDelSubN:' Its {n} passwords will move back to "{parent}".', confirmDelCatTree:'Delete category "{name}" and its {s} subcategories?',
   pasteTitle:'Import from Notes', pasteHelp:'Open the note with your passwords → Select All → Copy, then paste below. Text is parsed on this device only and never uploaded.',
   pastePh:'Many formats work, e.g.:\n\nGmail\nUsername: me@gmail.com\nPassword: xxxxxx\n\nBank user: me123 password: xxxx\n\nAmazon myname mypass',
   pasteClip:'Paste from clipboard', detect:'Detect', back:'Back', importToCat:'Import into category', reviewHelp:'Check each item. Fix anything detected wrong, and untick what you don\'t want.',
@@ -413,8 +420,7 @@ en: {
   backupFile:'passbook-backup', exported:'Backup exported (still encrypted)', badBackup:'Not a valid Passbook backup file', decrypting:'Decrypting…',
   importDone:'Import done: {a} added, {u} updated', badBackupPw:'Wrong password or damaged file', errNewMin8:'New master password must be at least 8 characters', verifying:'Verifying…',
   wrongCurrent:'Current master password is wrong', pwChanged:'Master password changed. Remember to export a new backup.',
-  wipeConfirm:'This permanently deletes every password on this device. It cannot be undone. Continue?', wipePrompt:'Type DELETE to confirm', wipeWord:'DELETE',
-  newCatPrompt:'New category name', renamePrompt:'New name for this category', rename:'Rename', moveUp:'Move up', catExists:'That category already exists',
+  wipeConfirm:'This permanently deletes every password on this device. It cannot be undone. Continue?', wipePrompt:'Type DELETE to confirm', wipeWord:'DELETE', rename:'Rename', moveUp:'Move up', catExists:'That category already exists',
   confirmDelCat:'Delete category "{name}"?', confirmDelCatN:' Its {n} passwords will become "Uncategorized" and will not be deleted.', noCats:'No categories yet',
   allHaveCat:'Every item already has a category', autoCatDone:'Auto-categorized {n} items', autoCatRest:'; {m} not recognized — open them to pick a category',
   clipFail:"Can't read the clipboard; long-press the box to paste", nothingFound:'Nothing detected; check the pasted text', pasteSummary:'{a} detected, {b} selected',
@@ -573,10 +579,26 @@ const subsOf = pid => cats().filter(c => c.parent === pid);
 const siblingsOf = c => cats().filter(x => (x.parent || '') === (c.parent || ''));
 const catOf = e => (e.cat && catById(e.cat)) ? e.cat : '';
 const topOf = id => { const c = catById(id); return c ? (c.parent || c.id) : ''; };
+// ---- 分类名称（中英文）----
+// 默认分类（有 key、没改过名）自动跟随语言；自建或改过名的用 c.names = { zh, en }，缺哪个就显示另一个
+function namesOf(c){
+  if (!c) return { zh:'', en:'' };
+  if (c.names) return { zh: c.names.zh || '', en: c.names.en || '' };
+  const d = c.key && CAT_DEFS.find(x => x.key === c.key);
+  if (d && (c.name === d.zh || c.name === d.en)) return { zh: d.zh, en: d.en };
+  return /[㐀-鿿]/.test(c.name || '') ? { zh: c.name, en: '' } : { zh: '', en: c.name || '' };
+}
+function catName(c){ const n = namesOf(c); return n[lang] || n.zh || n.en || ''; }
+function setNames(c, zh, en){ c.names = { zh, en }; c.name = zh || en; }
+// 同一层里是否已有同名（任一语言的名字相同都算）
+function nameTaken(sibs, zh, en, exceptId){
+  const want = [zh, en].filter(Boolean);
+  return sibs.some(x => x.id !== exceptId && Object.values(namesOf(x)).some(v => v && want.includes(v)));
+}
 function catLabel(id){
   const c = catById(id); if (!c) return '';
   const p = c.parent && catById(c.parent);
-  return p ? `${p.name} › ${c.name}` : c.name;
+  return p ? `${catName(p)} › ${catName(c)}` : catName(c);
 }
 function inFilter(e, f){
   const c = catOf(e);
@@ -585,12 +607,31 @@ function inFilter(e, f){
   if (f.startsWith('d:')) return c === f.slice(2);
   return c === f || (c && catById(c).parent === f);
 }
-function addCategory(name, parent = ''){
-  name = name.trim().slice(0, 20); if (!name) return '';
-  const ex = cats().find(c => c.name === name && (c.parent || '') === parent); if (ex) return ex.id;
-  const c = { id: newId(), name }; if (parent) c.parent = parent;
+function addCategory({ zh = '', en = '' }, parent = ''){
+  if (!zh && !en) return '';
+  const c = { id: newId() }; setNames(c, zh, en); if (parent) c.parent = parent;
   cats().push(c); return c.id;
 }
+// 分类名称编辑框：返回 { zh, en }，取消则返回 null
+let ceResolve = null, ceCheck = null;
+function openCatEditor({ title, zh = '', en = '', check }){
+  if (ceResolve) { ceResolve(null); ceResolve = null; }
+  $('ceTitle').textContent = title; $('ceZh').value = zh; $('ceEn').value = en; $('ceErr').textContent = '';
+  ceCheck = check || null;
+  $('catEditDlg').showModal();
+  (lang === 'zh' || !zh ? $('ceZh') : $('ceEn')).focus();
+  if (lang === 'en' && !en) $('ceEn').focus();
+  return new Promise(r => { ceResolve = r; });
+}
+$('catEditForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const zh = $('ceZh').value.trim().slice(0, 20), en = $('ceEn').value.trim().slice(0, 20);
+  if (!zh && !en) return $('ceErr').textContent = t('nameRequired');
+  if (ceCheck && ceCheck(zh, en)) return $('ceErr').textContent = t('catExists');
+  const r = ceResolve; ceResolve = null; $('catEditDlg').close(); if (r) r({ zh, en });
+});
+$('ceCancel').addEventListener('click', () => $('catEditDlg').close());
+$('catEditDlg').addEventListener('close', () => { if (ceResolve) { const r = ceResolve; ceResolve = null; r(null); } });
 function guessCat(e){
   const s = [e.name, e.url].join(' ');
   for (const k of RULE_ORDER) {
@@ -605,7 +646,7 @@ function fillCatSelect(sel, value, { withNew = true, withAuto = false } = {}){
   const opts = [];
   if (withAuto) opts.push(['__auto', t('autoDetect')]);
   opts.push(['', t('uncategorized')]);
-  for (const c of topCats()) { opts.push([c.id, c.name]); for (const s of subsOf(c.id)) opts.push([s.id, ' ↳ ' + s.name]); }
+  for (const c of topCats()) { opts.push([c.id, catName(c)]); for (const s of subsOf(c.id)) opts.push([s.id, ' ↳ ' + catName(s)]); }
   if (withNew) opts.push(['__new', t('newCatOpt')]);
   sel.replaceChildren(...opts.map(([v, txt]) => { const o = document.createElement('option'); o.value = v; o.textContent = txt; return o; }));
   sel.value = value; if (sel.value !== value) sel.value = '';
@@ -614,9 +655,9 @@ function fillCatSelect(sel, value, { withNew = true, withAuto = false } = {}){
 function bindCatSelect(sel, onPick, opts){
   sel.addEventListener('change', async () => {
     if (sel.value === '__new') {
-      const name = (prompt(t('newCatPrompt')) || '').trim();
-      if (!name) { sel.value = sel.dataset.prev || ''; return; }
-      const id = addCategory(name); await persist();
+      const res = await openCatEditor({ title: t('newCat'), check: (zh, en) => nameTaken(topCats(), zh, en) });
+      if (!res || !session) { sel.value = sel.dataset.prev || ''; return; }
+      const id = addCategory(res); await persist();
       fillCatSelect(sel, id, opts); renderList();
     }
     sel.dataset.prev = sel.value;
@@ -646,7 +687,7 @@ function renderChips(){
   const activeTop = catFilter === 'all' || catFilter === '' ? null : topOf(catFilter.startsWith('d:') ? catFilter.slice(2) : catFilter);
 
   const top = [chip('all', t('all'), es.length, catFilter === 'all'),
-    ...topCats().map(c => chip(c.id, c.name, n(c.id), activeTop === c.id))];
+    ...topCats().map(c => chip(c.id, catName(c), n(c.id), activeTop === c.id))];
   if (n('')) top.push(chip('', t('uncategorized'), n(''), catFilter === ''));
   const add = document.createElement('button'); add.type = 'button'; add.className = 'chip add'; add.textContent = t('addCatChip');
   add.addEventListener('click', openCatManager);
@@ -657,7 +698,7 @@ function renderChips(){
   $('subchips').classList.toggle('hidden', !subs.length);
   if (!subs.length) { $('subchips').replaceChildren(); return; }
   const row = [chip(activeTop, t('all'), n(activeTop), catFilter === activeTop),
-    ...subs.map(s => chip(s.id, s.name, n(s.id), catFilter === s.id))];
+    ...subs.map(s => chip(s.id, catName(s), n(s.id), catFilter === s.id))];
   const direct = n('d:' + activeTop);
   if (direct) row.push(chip('d:' + activeTop, t('directOnly'), direct, catFilter === 'd:' + activeTop));
   $('subchips').replaceChildren(...row);
@@ -680,7 +721,7 @@ function renderList(){
     if (catOf(e) && catOf(e) !== catFilter && 'd:' + catOf(e) !== catFilter) {
       // 在「全部」里显示完整路径；在大分类里只显示子分类名
       const c = catById(e.cat);
-      const label = catFilter === 'all' || catFilter === '' ? catLabel(e.cat) : c.name;
+      const label = catFilter === 'all' || catFilter === '' ? catLabel(e.cat) : catName(c);
       const tg = document.createElement('span'); tg.className = 'tagcat'; tg.textContent = label; s.append(tg);
     }
     s.append(e.user || e.url || '—');
@@ -859,15 +900,21 @@ $('impForm').addEventListener('submit', async e => {
     const incoming = Array.isArray(r.data.entries) ? r.data.entries : [];
     const remap = {};
     const incCats = (Array.isArray(r.data.categories) ? r.data.categories : [])
-      .filter(c => c && typeof c.id === 'string' && typeof c.name === 'string');
+      .filter(c => c && typeof c.id === 'string' && (typeof c.name === 'string' || c.names));
     // 先合并大分类，再合并子分类
     for (const c of [...incCats.filter(c => !c.parent), ...incCats.filter(c => c.parent)]) {
       if (catById(c.id)) continue;
       let parent = c.parent ? (remap[c.parent] || c.parent) : '';
       if (parent && (!catById(parent) || catById(parent).parent)) parent = '';
-      const same = cats().find(x => (x.parent || '') === parent && (x.name === c.name || (!parent && c.key && x.key === c.key)));
-      if (same) remap[c.id] = same.id;
-      else cats().push({ id: c.id, name: c.name.slice(0, 20), ...(c.key && !parent ? { key: c.key } : {}), ...(parent ? { parent } : {}) });
+      const n = namesOf(c);
+      const sibs = cats().filter(x => (x.parent || '') === parent);
+      const same = sibs.find(x => (!parent && c.key && x.key === c.key) || nameTaken([x], n.zh, n.en));
+      if (same) { remap[c.id] = same.id; continue; }
+      const nc = { id: c.id, name: String(c.name || n.zh || n.en).slice(0, 20) };
+      if (c.names) nc.names = { zh: String(c.names.zh || '').slice(0, 20), en: String(c.names.en || '').slice(0, 20) };
+      if (c.key && !parent) nc.key = c.key;
+      if (parent) nc.parent = parent;
+      cats().push(nc);
     }
     let added = 0, updated = 0;
     for (const inc of incoming) {
@@ -1042,13 +1089,16 @@ $('pasteImport').addEventListener('click', async () => {
 // ---------- 管理分类 ----------
 function openCatManager(){
   if ($('settingsDlg').open) $('settingsDlg').close();
-  $('catNew').value = ''; renderCatList(); $('catDlg').showModal();
+  renderCatList(); $('catDlg').showModal();
 }
 function catRow(c){
   const es = session.vault.entries;
   const isSub = !!c.parent;
   const row = document.createElement('div'); row.className = 'catrow' + (isSub ? ' sub' : '');
-  const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = (isSub ? '↳ ' : '') + c.name;
+  const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = (isSub ? '↳ ' : '') + catName(c);
+  // 有另一种语言的名字时，小字显示出来
+  const nn = namesOf(c), other = lang === 'zh' ? nn.en : nn.zh;
+  if (other && other !== catName(c)) { const o = document.createElement('span'); o.className = 'alt'; o.textContent = ' · ' + other; nm.append(o); }
   const cnt = document.createElement('span'); cnt.className = 'cnt';
   cnt.textContent = t('nItems', { n: es.filter(e => inFilter(e, c.id)).length });
   const btn = (label, fn, cls = '', aria = '') => {
@@ -1064,31 +1114,31 @@ function catRow(c){
   up.disabled = si === 0;
   const parts = [nm, cnt, up];
   if (!isSub) parts.push(btn('＋', async () => {
-    const v = (prompt(t('newSubPrompt', { name: c.name })) || '').trim().slice(0, 20);
-    if (!v) return;
-    if (subsOf(c.id).some(x => x.name === v)) return toast(t('catExists'));
-    addCategory(v, c.id); await persist(); renderCatList();
+    const res = await openCatEditor({ title: t('newSubPrompt', { name: catName(c) }), check: (zh, en) => nameTaken(subsOf(c.id), zh, en) });
+    if (!res || !session) return;
+    addCategory(res, c.id); await persist(); renderCatList();
   }, '', t('addSub')));
   parts.push(
     btn(t('rename'), async () => {
-      const v = (prompt(t('renamePrompt'), c.name) || '').trim().slice(0, 20);
-      if (!v || v === c.name) return;
-      if (sibs.some(x => x.name === v)) return toast(t('catExists'));
-      c.name = v; await persist(); renderCatList();
+      const cur = namesOf(c);
+      const res = await openCatEditor({ title: t('editCat'), zh: cur.zh, en: cur.en, check: (zh, en) => nameTaken(sibs, zh, en, c.id) });
+      if (!res || !session) return;
+      if (res.zh === cur.zh && res.en === cur.en) return;
+      setNames(c, res.zh, res.en); await persist(); renderCatList();
     }),
     btn(t('delete'), async () => {
       if (isSub) {
         // 删子分类：里面的密码移回上一级
         const n = es.filter(e => e.cat === c.id).length;
         const p = catById(c.parent);
-        if (!confirm(t('confirmDelSub', { name: c.name }) + (n ? t('confirmDelSubN', { n, parent: p.name }) : ''))) return;
+        if (!confirm(t('confirmDelSub', { name: catName(c) }) + (n ? t('confirmDelSubN', { n, parent: catName(p) }) : ''))) return;
         for (const e of es) if (e.cat === c.id) e.cat = p.id;
         session.vault.categories = cats().filter(x => x.id !== c.id);
       } else {
         // 删大分类：连同子分类一起删，里面的密码变成未分类
         const subs = subsOf(c.id), ids = new Set([c.id, ...subs.map(s => s.id)]);
         const n = es.filter(e => ids.has(e.cat)).length;
-        const msg = (subs.length ? t('confirmDelCatTree', { name: c.name, s: subs.length }) : t('confirmDelCat', { name: c.name }))
+        const msg = (subs.length ? t('confirmDelCatTree', { name: catName(c), s: subs.length }) : t('confirmDelCat', { name: catName(c) }))
           + (n ? t('confirmDelCatN', { n }) : '');
         if (!confirm(msg)) return;
         for (const e of es) if (ids.has(e.cat)) e.cat = '';
@@ -1107,11 +1157,10 @@ function renderCatList(){
 }
 $('sCats').addEventListener('click', openCatManager);
 $('catDlg').addEventListener('close', () => { if (session) renderList(); });
-$('catAddForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  const v = $('catNew').value.trim(); if (!v) return;
-  if (topCats().some(c => c.name === v)) return toast(t('catExists'));
-  addCategory(v); await persist(); $('catNew').value = ''; renderCatList();
+$('catAddBtn').addEventListener('click', async () => {
+  const res = await openCatEditor({ title: t('newCat'), check: (zh, en) => nameTaken(topCats(), zh, en) });
+  if (!res || !session) return;
+  addCategory(res); await persist(); renderCatList();
 });
 $('sAutoCat').addEventListener('click', async () => {
   const todo = session.vault.entries.filter(e => !catOf(e));
