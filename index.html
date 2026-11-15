@@ -568,6 +568,12 @@ function ensureCats(){
     session.vault.categories = CAT_DEFS.map(d => ({ id: newId(), key: d.key, name: d[lang] }));
     changed = true;
   }
+  // 旧版本建的默认分类没有 key，按名字认回来，这样才能随语言切换
+  for (const c of session.vault.categories) {
+    if (c.key || c.names || c.parent) continue;
+    const d = CAT_DEFS.find(x => (c.name === x.zh || c.name === x.en) && !session.vault.categories.some(o => o.key === x.key));
+    if (d) { c.key = d.key; changed = true; }
+  }
   // 只允许一层子分类：父分类必须存在且本身是大分类
   for (const c of session.vault.categories) {
     if (c.parent) { const p = session.vault.categories.find(x => x.id === c.parent); if (!p || p.parent) { delete c.parent; changed = true; } }
