@@ -215,7 +215,8 @@ select.inline{width:auto;padding:6px 10px;font-size:15px;background:var(--card)}
   <form class="sheet" id="editForm" method="dialog">
     <div class="sheet-head"><h3 id="eHead"></h3><button class="btn small" type="button" data-close data-i18n="cancel"></button></div>
     <div class="field"><label for="eName" data-i18n="name"></label><input id="eName" type="text" required data-i18n-ph="namePh" autocomplete="off"></div>
-    <div class="field"><label for="eCat" data-i18n="category"></label><select id="eCat"></select></div>
+    <div class="field"><label for="eCat" data-i18n="category"></label>
+      <div class="row"><select id="eCat" class="grow"></select><button class="btn small" type="button" id="eCatNew" data-i18n="newShort"></button></div></div>
     <div class="field"><label for="eUser" data-i18n="usernameAccount"></label><input id="eUser" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
     <div class="field"><label for="ePw" data-i18n="password"></label>
       <div class="row"><input class="grow" id="ePw" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -308,6 +309,7 @@ select.inline{width:auto;padding:6px 10px;font-size:15px;background:var(--card)}
     <div class="sheet-head"><h3 id="ceTitle"></h3><button class="btn small" type="button" id="ceCancel" data-i18n="cancel"></button></div>
     <div class="field"><label for="ceZh" data-i18n="nameZh"></label><input id="ceZh" type="text" maxlength="20" autocomplete="off" data-i18n-ph="phZh"></div>
     <div class="field"><label for="ceEn" data-i18n="nameEn"></label><input id="ceEn" type="text" maxlength="20" autocomplete="off" autocapitalize="words" data-i18n-ph="phEn"></div>
+    <div class="field hidden" id="ceParentField"><label for="ceParent" data-i18n="parentCat"></label><select id="ceParent"></select></div>
     <p class="meter-label" style="margin:0" data-i18n="nameHint"></p>
     <div class="err" id="ceErr"></div>
     <button class="btn primary" type="submit" data-i18n="save"></button>
@@ -370,7 +372,7 @@ zh: {
   cryptoNote:'数据使用 AES-256-GCM 加密，密钥由主密码经 PBKDF2-SHA256（60 万次）派生，只保存在本设备上。',
   pwOldPh:'当前主密码', pwNewPh:'新主密码（至少 8 位）', pwNew2Ph:'再输入一次新主密码', confirmChange:'确认修改',
   importBackupTitle:'导入备份', impSub:'请输入<b>创建该备份时</b>使用的主密码。导入的条目会合并到当前密码本。', impPwPh:'备份的主密码', import:'导入', catDelNote:'点 ＋ 可以在分类下建子分类。删除不会删掉密码：子分类里的密码会移回上一级，大分类里的密码会变成「未分类」。',
-  directOnly:'未细分', newCat:'＋ 新建分类', editCat:'编辑分类名称', nameZh:'中文名称', phZh:'例如：家庭', phEn:'例如：Family', nameEn:'英文名称', nameRequired:'请至少填一个名称', nameHint:'至少填一个。切换语言时会显示对应的名称；只填了一个的话，两种语言都显示它。', addSub:'新建子分类', newSubPrompt:'在「{name}」下新建子分类', confirmDelSub:'删除子分类「{name}」？', confirmDelSubN:'里面的 {n} 条密码会移回「{parent}」。', confirmDelCatTree:'删除分类「{name}」和它的 {s} 个子分类？',
+  directOnly:'未细分', newCat:'＋ 新建分类', editCat:'编辑分类名称', nameZh:'中文名称', newShort:'＋ 新建', parentCat:'放在哪里', asTopLevel:'作为大分类', underCat:'放在「{name}」下面（子分类）', phZh:'例如：家庭', phEn:'例如：Family', nameEn:'英文名称', nameRequired:'请至少填一个名称', nameHint:'至少填一个。切换语言时会显示对应的名称；只填了一个的话，两种语言都显示它。', addSub:'新建子分类', newSubPrompt:'在「{name}」下新建子分类', confirmDelSub:'删除子分类「{name}」？', confirmDelSubN:'里面的 {n} 条密码会移回「{parent}」。', confirmDelCatTree:'删除分类「{name}」和它的 {s} 个子分类？',
   pasteTitle:'从记事本导入', pasteHelp:'在「备忘录」打开记密码的笔记 → 全选 → 拷贝，再粘贴到下面。内容只在本机识别，不会上传。',
   pastePh:'支持多种写法，例如：\n\n微信\n账号：abc123\n密码：xxxxxx\n\n邮箱 账号:me@mail.com 密码:xxxx\n\n淘宝 myname mypass',
   pasteClip:'从剪贴板粘贴', detect:'识别', back:'返回修改', importToCat:'导入到分类', reviewHelp:'请逐条检查，识别不对的可以直接改，不要的取消勾选。',
@@ -407,7 +409,7 @@ en: {
   cryptoNote:'Data is encrypted with AES-256-GCM. The key is derived from your master password with PBKDF2-SHA256 (600,000 rounds) and stays on this device.',
   pwOldPh:'Current master password', pwNewPh:'New master password (8+ characters)', pwNew2Ph:'Confirm new master password', confirmChange:'Change password',
   importBackupTitle:'Import backup', impSub:'Enter the master password that was used <b>when this backup was made</b>. Its entries will be merged into this vault.', impPwPh:"Backup's master password", import:'Import', catDelNote:'Tap ＋ to add a subcategory. Deleting never removes passwords: those in a subcategory move up to its parent; those in a top-level category become "Uncategorized".',
-  directOnly:'Other', newCat:'＋ New category', editCat:'Edit category name', nameZh:'Chinese name', phZh:'e.g. 家庭', phEn:'e.g. Family', nameEn:'English name', nameRequired:'Enter at least one name', nameHint:'Fill in at least one. The app shows the name for the current language; if only one is filled in, it is shown in both.', addSub:'Add subcategory', newSubPrompt:'New subcategory under "{name}"', confirmDelSub:'Delete subcategory "{name}"?', confirmDelSubN:' Its {n} passwords will move back to "{parent}".', confirmDelCatTree:'Delete category "{name}" and its {s} subcategories?',
+  directOnly:'Other', newCat:'＋ New category', editCat:'Edit category name', nameZh:'Chinese name', newShort:'＋ New', parentCat:'Place it', asTopLevel:'As a top-level category', underCat:'Under "{name}" (subcategory)', phZh:'e.g. 家庭', phEn:'e.g. Family', nameEn:'English name', nameRequired:'Enter at least one name', nameHint:'Fill in at least one. The app shows the name for the current language; if only one is filled in, it is shown in both.', addSub:'Add subcategory', newSubPrompt:'New subcategory under "{name}"', confirmDelSub:'Delete subcategory "{name}"?', confirmDelSubN:' Its {n} passwords will move back to "{parent}".', confirmDelCatTree:'Delete category "{name}" and its {s} subcategories?',
   pasteTitle:'Import from Notes', pasteHelp:'Open the note with your passwords → Select All → Copy, then paste below. Text is parsed on this device only and never uploaded.',
   pastePh:'Many formats work, e.g.:\n\nGmail\nUsername: me@gmail.com\nPassword: xxxxxx\n\nBank user: me123 password: xxxx\n\nAmazon myname mypass',
   pasteClip:'Paste from clipboard', detect:'Detect', back:'Back', importToCat:'Import into category', reviewHelp:'Check each item. Fix anything detected wrong, and untick what you don\'t want.',
@@ -612,24 +614,41 @@ function addCategory({ zh = '', en = '' }, parent = ''){
   const c = { id: newId() }; setNames(c, zh, en); if (parent) c.parent = parent;
   cats().push(c); return c.id;
 }
-// 分类名称编辑框：返回 { zh, en }，取消则返回 null
+// 分类名称编辑框：返回 { zh, en, parent }，取消则返回 null
+// pickParent 为 true 时显示「放在哪里」，可选作为大分类或放到某个大分类下面
 let ceResolve = null, ceCheck = null;
-function openCatEditor({ title, zh = '', en = '', check }){
+function openCatEditor({ title, zh = '', en = '', check, pickParent = false, parent = '' }){
   if (ceResolve) { ceResolve(null); ceResolve = null; }
   $('ceTitle').textContent = title; $('ceZh').value = zh; $('ceEn').value = en; $('ceErr').textContent = '';
   ceCheck = check || null;
+  $('ceParentField').classList.toggle('hidden', !pickParent);
+  if (pickParent) {
+    const opts = [['', t('asTopLevel')], ...topCats().map(c => [c.id, t('underCat', { name: catName(c) })])];
+    $('ceParent').replaceChildren(...opts.map(([v, txt]) => { const o = document.createElement('option'); o.value = v; o.textContent = txt; return o; }));
+    $('ceParent').value = parent; if ($('ceParent').value !== parent) $('ceParent').value = '';
+  }
   $('catEditDlg').showModal();
-  (lang === 'zh' || !zh ? $('ceZh') : $('ceEn')).focus();
-  if (lang === 'en' && !en) $('ceEn').focus();
+  (lang === 'en' ? $('ceEn') : $('ceZh')).focus();
   return new Promise(r => { ceResolve = r; });
 }
 $('catEditForm').addEventListener('submit', e => {
   e.preventDefault();
   const zh = $('ceZh').value.trim().slice(0, 20), en = $('ceEn').value.trim().slice(0, 20);
+  const parent = $('ceParentField').classList.contains('hidden') ? '' : $('ceParent').value;
   if (!zh && !en) return $('ceErr').textContent = t('nameRequired');
-  if (ceCheck && ceCheck(zh, en)) return $('ceErr').textContent = t('catExists');
-  const r = ceResolve; ceResolve = null; $('catEditDlg').close(); if (r) r({ zh, en });
+  if (ceCheck && ceCheck(zh, en, parent)) return $('ceErr').textContent = t('catExists');
+  const r = ceResolve; ceResolve = null; $('catEditDlg').close(); if (r) r({ zh, en, parent });
 });
+// 在下拉框旁边直接新建分类（可选放在某个大分类下），建好后自动选中
+async function newCatForSelect(sel, opts){
+  const prev = sel.dataset.prev || '';
+  const res = await openCatEditor({ title: t('newCat'), pickParent: true,
+    check: (zh, en, parent) => nameTaken(parent ? subsOf(parent) : topCats(), zh, en) });
+  if (!res || !session) { sel.value = prev; return null; }
+  const id = addCategory(res, res.parent); await persist();
+  fillCatSelect(sel, id, opts); renderList();
+  return id;
+}
 $('ceCancel').addEventListener('click', () => $('catEditDlg').close());
 $('catEditDlg').addEventListener('close', () => { if (ceResolve) { const r = ceResolve; ceResolve = null; r(null); } });
 function guessCat(e){
@@ -654,12 +673,7 @@ function fillCatSelect(sel, value, { withNew = true, withAuto = false } = {}){
 }
 function bindCatSelect(sel, onPick, opts){
   sel.addEventListener('change', async () => {
-    if (sel.value === '__new') {
-      const res = await openCatEditor({ title: t('newCat'), check: (zh, en) => nameTaken(topCats(), zh, en) });
-      if (!res || !session) { sel.value = sel.dataset.prev || ''; return; }
-      const id = addCategory(res); await persist();
-      fillCatSelect(sel, id, opts); renderList();
-    }
+    if (sel.value === '__new' && !(await newCatForSelect(sel, opts))) return;
     sel.dataset.prev = sel.value;
     if (onPick) onPick(sel.value);
   });
@@ -811,6 +825,7 @@ function openEditor(entry){
 $('addBtn').addEventListener('click', () => openEditor(null));
 $('eToggle').addEventListener('click', () => setPwVisible($('ePw').type === 'password'));
 bindCatSelect($('eCat'));
+$('eCatNew').addEventListener('click', () => newCatForSelect($('eCat')));
 $('ePw').addEventListener('input', () => paintMeter($('eMeter'), $('eMeterLabel'), $('ePw').value));
 $('eGenToggle').addEventListener('click', () => { $('genBox').classList.remove('hidden'); runGen(); });
 $('editForm').addEventListener('submit', async e => {
