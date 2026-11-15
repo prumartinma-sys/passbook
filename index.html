@@ -145,7 +145,7 @@ select.inline{width:auto;padding:6px 10px;font-size:15px;background:var(--card)}
   <p class="sub" data-i18n="setupSub"></p>
   <form id="setupForm" class="auth" style="min-height:0;gap:12px">
     <div class="field"><label for="setupPw" data-i18n="setupPwLabel"></label>
-      <input id="setupPw" type="password" autocomplete="new-password" required minlength="8"></div>
+      <input id="setupPw" type="password" autocomplete="new-password" required></div>
     <div class="meter"><i id="setupMeter"></i></div>
     <div class="field"><label for="setupPw2" data-i18n="setupPw2Label"></label>
       <input id="setupPw2" type="password" autocomplete="new-password" required></div>
@@ -275,7 +275,7 @@ select.inline{width:auto;padding:6px 10px;font-size:15px;background:var(--card)}
   <form class="sheet" id="pwForm" method="dialog">
     <div class="sheet-head"><h3 data-i18n="changePw"></h3><button class="btn small" type="button" data-close data-i18n="cancel"></button></div>
     <input id="pwOld" type="password" data-i18n-ph="pwOldPh" autocomplete="current-password" required>
-    <input id="pwNew" type="password" data-i18n-ph="pwNewPh" autocomplete="new-password" required minlength="8">
+    <input id="pwNew" type="password" data-i18n-ph="pwNewPh" autocomplete="new-password" required>
     <input id="pwNew2" type="password" data-i18n-ph="pwNew2Ph" autocomplete="new-password" required>
     <div class="err" id="pwErr"></div>
     <button class="btn primary" type="submit" data-i18n="confirmChange"></button>
@@ -358,7 +358,7 @@ function savePrefs(){ safeSet(PREF_KEY, JSON.stringify(prefs)); }
 const I18N = {
 zh: {
   appName:'密码本', setupTitle:'创建密码本', setupSub:'设置一个主密码，用来加密你保存的所有密码。',
-  setupPwLabel:'主密码（至少 8 位）', setupPw2Label:'再输入一次', create:'创建',
+  setupPwLabel:'主密码', setupPw2Label:'再输入一次', create:'创建',
   setupWarn:'⚠️ 主密码不会上传到任何地方，也<b>无法找回</b>。忘记主密码 = 数据永久无法解密。请记牢，并定期在「设置」里导出加密备份。',
   lockSub:'输入主密码解锁', masterPw:'主密码', unlock:'解锁', settings:'设置', lock:'锁定', add:'添加',
   searchPh:'搜索名称、用户名、网址', emptyList:'还没有保存任何密码<br>点右下角 ＋ 添加',
@@ -370,20 +370,20 @@ zh: {
   manageCats:'管理分类', autoCat:'自动分类「未分类」的条目', pasteImport:'从记事本粘贴导入', exportBackup:'导出加密备份',
   importBackup:'从备份导入（合并）', changePw:'修改主密码', wipe:'清除所有数据',
   cryptoNote:'数据使用 AES-256-GCM 加密，密钥由主密码经 PBKDF2-SHA256（60 万次）派生，只保存在本设备上。',
-  pwOldPh:'当前主密码', pwNewPh:'新主密码（至少 8 位）', pwNew2Ph:'再输入一次新主密码', confirmChange:'确认修改',
+  pwOldPh:'当前主密码', pwNewPh:'新主密码', pwNew2Ph:'再输入一次新主密码', confirmChange:'确认修改',
   importBackupTitle:'导入备份', impSub:'请输入<b>创建该备份时</b>使用的主密码。导入的条目会合并到当前密码本。', impPwPh:'备份的主密码', import:'导入', catDelNote:'点 ＋ 可以在分类下建子分类。删除不会删掉密码：子分类里的密码会移回上一级，大分类里的密码会变成「未分类」。',
   directOnly:'未细分', newCat:'＋ 新建分类', editCat:'编辑分类名称', nameZh:'中文名称', newShort:'＋ 新建', parentCat:'放在哪里', asTopLevel:'作为大分类', underCat:'放在「{name}」下面（子分类）', phZh:'例如：家庭', phEn:'例如：Family', nameEn:'英文名称', nameRequired:'请至少填一个名称', nameHint:'至少填一个。切换语言时会显示对应的名称；只填了一个的话，两种语言都显示它。', addSub:'新建子分类', newSubPrompt:'在「{name}」下新建子分类', confirmDelSub:'删除子分类「{name}」？', confirmDelSubN:'里面的 {n} 条密码会移回「{parent}」。', confirmDelCatTree:'删除分类「{name}」和它的 {s} 个子分类？',
   pasteTitle:'从记事本导入', pasteHelp:'在「备忘录」打开记密码的笔记 → 全选 → 拷贝，再粘贴到下面。内容只在本机识别，不会上传。',
   pastePh:'支持多种写法，例如：\n\n微信\n账号：abc123\n密码：xxxxxx\n\n邮箱 账号:me@mail.com 密码:xxxx\n\n淘宝 myname mypass',
   pasteClip:'从剪贴板粘贴', detect:'识别', back:'返回修改', importToCat:'导入到分类', reviewHelp:'请逐条检查，识别不对的可以直接改，不要的取消勾选。',
-  errMin8:'主密码至少 8 位', errMismatch:'两次输入不一致', creating:'正在创建…', unlocking:'正在解锁…', wrongPw:'主密码错误',
+  errMin8:'请输入主密码', errMismatch:'两次输入不一致', creating:'正在创建…', unlocking:'正在解锁…', wrongPw:'主密码错误',
   saveFail:'保存失败：存储不可用', found:'找到 {n} 条', total:'共 {n} 条', nItems:'{n} 条', catEmpty:'这个分类还没有密码',
   all:'全部', uncategorized:'未分类', addCatChip:'＋ 分类', newCatOpt:'＋ 新建分类…', autoDetect:'自动识别',
   lastModified:'最后修改：{d}', userCopied:'用户名已复制', pwCopied:'密码已复制，60 秒后尝试清除剪贴板', copyFail:'复制失败，请长按手动复制',
   badUrl:'网址无效', confirmDelete:'确定删除「{name}」？此操作无法撤销。', deleted:'已删除', movedTo:'已移到「{name}」', setUncat:'已设为未分类',
   saved:'已保存', weak:'弱', fair:'一般', strong:'强', vstrong:'很强', strength:'强度：{t}', updated:'已更新',
   backupFile:'密码本备份', exported:'备份已导出（仍是加密的）', badBackup:'不是有效的密码本备份文件', decrypting:'正在解密…',
-  importDone:'导入完成：新增 {a}，更新 {u}', badBackupPw:'密码错误或文件已损坏', errNewMin8:'新主密码至少 8 位', verifying:'正在验证…',
+  importDone:'导入完成：新增 {a}，更新 {u}', badBackupPw:'密码错误或文件已损坏', errNewMin8:'请输入新主密码', verifying:'正在验证…',
   wrongCurrent:'当前主密码错误', pwChanged:'主密码已修改，记得重新导出备份',
   wipeConfirm:'将永久删除本设备上的所有密码，无法恢复。确定继续？', wipePrompt:'请输入「删除」二字确认', wipeWord:'删除', rename:'改名', moveUp:'上移', catExists:'已经有这个分类了',
   confirmDelCat:'删除分类「{name}」？', confirmDelCatN:'里面的 {n} 条密码会变成「未分类」，不会被删除。', noCats:'还没有分类',
@@ -395,7 +395,7 @@ zh: {
 },
 en: {
   appName:'Passbook', setupTitle:'Create your vault', setupSub:'Set a master password. It encrypts everything you save.',
-  setupPwLabel:'Master password (at least 8 characters)', setupPw2Label:'Confirm master password', create:'Create',
+  setupPwLabel:'Master password', setupPw2Label:'Confirm master password', create:'Create',
   setupWarn:'⚠️ Your master password never leaves this device and <b>cannot be recovered</b>. Forget it and your data is gone for good. Remember it, and export an encrypted backup from Settings regularly.',
   lockSub:'Enter your master password to unlock', masterPw:'Master password', unlock:'Unlock', settings:'Settings', lock:'Lock', add:'Add',
   searchPh:'Search name, username, URL', emptyList:'No passwords yet<br>Tap ＋ to add one',
@@ -407,20 +407,20 @@ en: {
   manageCats:'Manage categories', autoCat:'Auto-categorize uncategorized items', pasteImport:'Import by pasting from Notes', exportBackup:'Export encrypted backup',
   importBackup:'Import backup (merge)', changePw:'Change master password', wipe:'Erase all data',
   cryptoNote:'Data is encrypted with AES-256-GCM. The key is derived from your master password with PBKDF2-SHA256 (600,000 rounds) and stays on this device.',
-  pwOldPh:'Current master password', pwNewPh:'New master password (8+ characters)', pwNew2Ph:'Confirm new master password', confirmChange:'Change password',
+  pwOldPh:'Current master password', pwNewPh:'New master password', pwNew2Ph:'Confirm new master password', confirmChange:'Change password',
   importBackupTitle:'Import backup', impSub:'Enter the master password that was used <b>when this backup was made</b>. Its entries will be merged into this vault.', impPwPh:"Backup's master password", import:'Import', catDelNote:'Tap ＋ to add a subcategory. Deleting never removes passwords: those in a subcategory move up to its parent; those in a top-level category become "Uncategorized".',
   directOnly:'Other', newCat:'＋ New category', editCat:'Edit category name', nameZh:'Chinese name', newShort:'＋ New', parentCat:'Place it', asTopLevel:'As a top-level category', underCat:'Under "{name}" (subcategory)', phZh:'e.g. 家庭', phEn:'e.g. Family', nameEn:'English name', nameRequired:'Enter at least one name', nameHint:'Fill in at least one. The app shows the name for the current language; if only one is filled in, it is shown in both.', addSub:'Add subcategory', newSubPrompt:'New subcategory under "{name}"', confirmDelSub:'Delete subcategory "{name}"?', confirmDelSubN:' Its {n} passwords will move back to "{parent}".', confirmDelCatTree:'Delete category "{name}" and its {s} subcategories?',
   pasteTitle:'Import from Notes', pasteHelp:'Open the note with your passwords → Select All → Copy, then paste below. Text is parsed on this device only and never uploaded.',
   pastePh:'Many formats work, e.g.:\n\nGmail\nUsername: me@gmail.com\nPassword: xxxxxx\n\nBank user: me123 password: xxxx\n\nAmazon myname mypass',
   pasteClip:'Paste from clipboard', detect:'Detect', back:'Back', importToCat:'Import into category', reviewHelp:'Check each item. Fix anything detected wrong, and untick what you don\'t want.',
-  errMin8:'Master password must be at least 8 characters', errMismatch:"The passwords don't match", creating:'Creating…', unlocking:'Unlocking…', wrongPw:'Wrong master password',
+  errMin8:'Please enter a master password', errMismatch:"The passwords don't match", creating:'Creating…', unlocking:'Unlocking…', wrongPw:'Wrong master password',
   saveFail:'Save failed: storage unavailable', found:'{n} found', total:'{n} items', total_one:'1 item', nItems:'{n} items', nItems_one:'1 item', catEmpty:'No passwords in this category yet',
   all:'All', uncategorized:'Uncategorized', addCatChip:'＋ Category', newCatOpt:'＋ New category…', autoDetect:'Auto-detect',
   lastModified:'Last modified: {d}', userCopied:'Username copied', pwCopied:'Password copied; clipboard will be cleared in 60 s', copyFail:'Copy failed; long-press to copy manually',
   badUrl:'Invalid URL', confirmDelete:'Delete "{name}"? This cannot be undone.', deleted:'Deleted', movedTo:'Moved to "{name}"', setUncat:'Set to Uncategorized',
   saved:'Saved', weak:'Weak', fair:'Fair', strong:'Strong', vstrong:'Very strong', strength:'Strength: {t}', updated:'Updated',
   backupFile:'passbook-backup', exported:'Backup exported (still encrypted)', badBackup:'Not a valid Passbook backup file', decrypting:'Decrypting…',
-  importDone:'Import done: {a} added, {u} updated', badBackupPw:'Wrong password or damaged file', errNewMin8:'New master password must be at least 8 characters', verifying:'Verifying…',
+  importDone:'Import done: {a} added, {u} updated', badBackupPw:'Wrong password or damaged file', errNewMin8:'Please enter a new master password', verifying:'Verifying…',
   wrongCurrent:'Current master password is wrong', pwChanged:'Master password changed. Remember to export a new backup.',
   wipeConfirm:'This permanently deletes every password on this device. It cannot be undone. Continue?', wipePrompt:'Type DELETE to confirm', wipeWord:'DELETE', rename:'Rename', moveUp:'Move up', catExists:'That category already exists',
   confirmDelCat:'Delete category "{name}"?', confirmDelCatN:' Its {n} passwords will become "Uncategorized" and will not be deleted.', noCats:'No categories yet',
@@ -516,7 +516,7 @@ $('setupPw').addEventListener('input', e => paintMeter($('setupMeter'), null, e.
 $('setupForm').addEventListener('submit', async e => {
   e.preventDefault();
   const a = $('setupPw').value, b = $('setupPw2').value;
-  if (a.length < 8) return $('setupErr').textContent = t('errMin8');
+  if (a.length < 1) return $('setupErr').textContent = t('errMin8');
   if (a !== b) return $('setupErr').textContent = t('errMismatch');
   $('setupErr').textContent = t('creating');
   const salt = rand(16);
@@ -957,7 +957,7 @@ $('sChangePw').addEventListener('click', () => {
 $('pwForm').addEventListener('submit', async e => {
   e.preventDefault();
   const a = $('pwNew').value, b = $('pwNew2').value;
-  if (a.length < 8) return $('pwErr').textContent = t('errNewMin8');
+  if (a.length < 1) return $('pwErr').textContent = t('errNewMin8');
   if (a !== b) return $('pwErr').textContent = t('errMismatch');
   $('pwErr').textContent = t('verifying');
   try { await open(JSON.parse(safeGet(STORE_KEY)), $('pwOld').value); }
