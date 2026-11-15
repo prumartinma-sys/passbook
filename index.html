@@ -259,6 +259,11 @@ select.inline{width:auto;padding:6px 10px;font-size:15px;background:var(--card)}
       <button id="sAutoCat" data-i18n="autoCat"></button>
     </div>
     <div class="menu">
+      <button id="sSync" data-i18n="syncNow"></button>
+      <button id="sSyncSave" data-i18n="syncSave"></button>
+    </div>
+    <p class="meter-label" style="margin-top:-6px"><span data-i18n="syncHelp"></span> <span id="syncInfo"></span></p>
+    <div class="menu">
       <button id="sPaste" data-i18n="pasteImport"></button>
       <button id="sExport" data-i18n="exportBackup"></button>
       <button id="sImport" data-i18n="importBackup"></button>
@@ -267,6 +272,7 @@ select.inline{width:auto;padding:6px 10px;font-size:15px;background:var(--card)}
     <div class="menu"><button id="sWipe" class="btn danger" style="border-radius:0;font-weight:600" data-i18n="wipe"></button></div>
     <p class="meter-label" data-i18n="cryptoNote"></p>
     <input type="file" id="importFile" accept=".json,application/json" class="hidden">
+    <input type="file" id="syncFile" accept=".json,application/json" class="hidden">
   </div>
 </dialog>
 
@@ -282,11 +288,21 @@ select.inline{width:auto;padding:6px 10px;font-size:15px;background:var(--card)}
   </form>
 </dialog>
 
+<!-- 同步完成 / Sync done -->
+<dialog id="syncDlg">
+  <div class="sheet">
+    <div class="sheet-head"><h3 data-i18n="syncDoneTitle"></h3><button class="btn small" type="button" data-close data-i18n="later"></button></div>
+    <p class="sub" style="margin:0" id="syncResult"></p>
+    <p class="sub" style="margin:0" data-i18n="syncDoneNext"></p>
+    <button class="btn primary" type="button" id="syncSaveBtn" data-i18n="syncSave"></button>
+  </div>
+</dialog>
+
 <!-- 输入备份密码 / Backup password -->
 <dialog id="impDlg">
   <form class="sheet" id="impForm" method="dialog">
     <div class="sheet-head"><h3 data-i18n="importBackupTitle"></h3><button class="btn small" type="button" data-close data-i18n="cancel"></button></div>
-    <p class="sub" style="margin:0" data-i18n-html="impSub"></p>
+    <p class="sub" style="margin:0" id="impSubText" data-i18n-html="impSub"></p>
     <input id="impPw" type="password" data-i18n-ph="impPwPh" autocomplete="off" required>
     <div class="err" id="impErr"></div>
     <button class="btn primary" type="submit" data-i18n="import"></button>
@@ -338,7 +354,7 @@ select.inline{width:auto;padding:6px 10px;font-size:15px;background:var(--card)}
 <div class="toast" id="toast"></div>
 
 <script>
-const APP_VERSION = '1.10';
+const APP_VERSION = '1.11';
 (() => {
 'use strict';
 const STORE_KEY = 'passbook.vault.v1';
@@ -370,6 +386,8 @@ zh: {
   autoLock:'自动锁定', al0:'离开 App 后立即锁定', al60:'1 分钟无操作', al300:'5 分钟无操作', al900:'15 分钟无操作',
   manageCats:'管理分类', autoCat:'自动分类「未分类」的条目', pasteImport:'从记事本粘贴导入', exportBackup:'导出加密备份',
   importBackup:'从备份导入（合并）', changePw:'修改主密码', wipe:'清除所有数据',
+  syncNow:'从 iCloud 同步（合并）', syncSave:'保存到 iCloud', syncHelp:'两台设备同步：先「从 iCloud 同步」，再「保存到 iCloud」。保存时选 iCloud 云盘，文件名保持 passbook-sync.json，遇到同名文件选「替换」。',
+  lastSync:'上次保存：{d}', neverSynced:'还没保存过。', syncDoneTitle:'同步完成', syncResult:'新增 {a} 条，更新 {u} 条，删除 {d} 条。', syncDoneNext:'现在把合并后的结果保存回 iCloud，另一台设备才能拿到这边的改动。', later:'稍后', syncPwSub:'这个同步文件是用<b>另一个主密码</b>加密的，请输入另一台设备的主密码。', syncSaved:'已生成同步文件，请存到 iCloud 云盘',
   cryptoNote:'数据使用 AES-256-GCM 加密，密钥由主密码经 PBKDF2-SHA256（60 万次）派生，只保存在本设备上。',
   pwOldPh:'当前主密码', pwNewPh:'新主密码', pwNew2Ph:'再输入一次新主密码', confirmChange:'确认修改',
   importBackupTitle:'导入备份', impSub:'请输入<b>创建该备份时</b>使用的主密码。导入的条目会合并到当前密码本。', impPwPh:'备份的主密码', import:'导入', catDelNote:'点 ＋ 可以在分类下建子分类。删除不会删掉密码：子分类里的密码会移回上一级，大分类里的密码会变成「未分类」。',
@@ -407,6 +425,8 @@ en: {
   autoLock:'Auto-lock', al0:'Immediately when leaving the app', al60:'After 1 minute idle', al300:'After 5 minutes idle', al900:'After 15 minutes idle',
   manageCats:'Manage categories', autoCat:'Auto-categorize uncategorized items', pasteImport:'Import by pasting from Notes', exportBackup:'Export encrypted backup',
   importBackup:'Import backup (merge)', changePw:'Change master password', wipe:'Erase all data',
+  syncNow:'Sync from iCloud (merge)', syncSave:'Save to iCloud', syncHelp:'To sync two devices: first "Sync from iCloud", then "Save to iCloud". When saving, pick iCloud Drive, keep the name passbook-sync.json, and choose Replace if asked.',
+  lastSync:'Last saved: {d}', neverSynced:'Not saved yet.', syncDoneTitle:'Sync complete', syncResult:'{a} added, {u} updated, {d} deleted.', syncDoneNext:'Now save the merged result back to iCloud so the other device gets the changes from here.', later:'Later', syncPwSub:'This sync file was encrypted with <b>a different master password</b>. Enter the other device\'s master password.', syncSaved:'Sync file ready. Save it to iCloud Drive',
   cryptoNote:'Data is encrypted with AES-256-GCM. The key is derived from your master password with PBKDF2-SHA256 (600,000 rounds) and stays on this device.',
   pwOldPh:'Current master password', pwNewPh:'New master password', pwNew2Ph:'Confirm new master password', confirmChange:'Change password',
   importBackupTitle:'Import backup', impSub:'Enter the master password that was used <b>when this backup was made</b>. Its entries will be merged into this vault.', impPwPh:"Backup's master password", import:'Import', catDelNote:'Tap ＋ to add a subcategory. Deleting never removes passwords: those in a subcategory move up to its parent; those in a top-level category become "Uncategorized".',
@@ -522,7 +542,7 @@ $('setupForm').addEventListener('submit', async e => {
   $('setupErr').textContent = t('creating');
   const salt = rand(16);
   const key = await deriveKey(a, salt, ITER);
-  session = { key, salt, iter: ITER, vault: { entries: [] } };
+  session = { key, salt, iter: ITER, pw: a, vault: { entries: [] } };
   ensureCats();
   await persist();
   $('setupPw').value = $('setupPw2').value = '';
@@ -539,7 +559,7 @@ $('lockForm').addEventListener('submit', async e => {
   try {
     const blob = JSON.parse(safeGet(STORE_KEY));
     const r = await open(blob, $('lockPw').value);
-    session = { key:r.key, salt:r.salt, iter:r.iter, vault:r.data };
+    session = { key:r.key, salt:r.salt, iter:r.iter, pw: $('lockPw').value, vault:r.data };
     if (!Array.isArray(session.vault.entries)) session.vault.entries = [];
     failCount = 0; $('lockPw').value = ''; $('lockErr').textContent = '';
     enterMain();
@@ -797,6 +817,7 @@ $('dEdit').addEventListener('click', () => { $('detailDlg').close(); openEditor(
 $('dDelete').addEventListener('click', async () => {
   if (!confirm(t('confirmDelete', { name: current.name }))) return;
   session.vault.entries = session.vault.entries.filter(e => e.id !== current.id);
+  tomb('e', current.id);
   await persist(); $('detailDlg').close(); renderList(); toast(t('deleted'));
 });
 
@@ -911,45 +932,133 @@ $('importFile').addEventListener('change', async e => {
   try {
     const o = JSON.parse(await f.text());
     if (!validBlob(o)) throw 0;
-    pendingImport = o; $('impPw').value = ''; $('impErr').textContent = '';
+    pendingImport = o; impMode = 'backup'; $('impPw').value = ''; $('impErr').textContent = '';
+    $('impSubText').innerHTML = t('impSub');
     $('settingsDlg').close(); $('impDlg').showModal();
   } catch { toast(t('badBackup')); }
 });
+// ---------- 合并（导入备份和同步共用）----------
+function tombs(){
+  const v = session.vault;
+  if (!v.tomb || typeof v.tomb !== 'object') v.tomb = { e:{}, c:{} };
+  v.tomb.e ||= {}; v.tomb.c ||= {};
+  return v.tomb;
+}
+function tomb(kind, id){ tombs()[kind][id] = Date.now(); }
+
+function mergeVault(data){
+  const T = tombs();
+  // 1. 删除记录取并集（保留较新的时间）
+  const inT = data && data.tomb && typeof data.tomb === 'object' ? data.tomb : {};
+  for (const k of ['e','c']) for (const [id, ts] of Object.entries(inT[k] || {}))
+    if (typeof ts === 'number' && ts > (T[k][id] || 0)) T[k][id] = ts;
+
+  // 2. 合并分类（先大分类，再子分类），跳过已删除的
+  const remap = {};
+  const incCats = (Array.isArray(data.categories) ? data.categories : [])
+    .filter(c => c && typeof c.id === 'string' && (typeof c.name === 'string' || c.names) && !T.c[c.id]);
+  for (const c of [...incCats.filter(c => !c.parent), ...incCats.filter(c => c.parent)]) {
+    if (catById(c.id)) continue;
+    let parent = c.parent ? (remap[c.parent] || c.parent) : '';
+    if (parent && (!catById(parent) || catById(parent).parent)) parent = '';
+    const n = namesOf(c);
+    const sibs = cats().filter(x => (x.parent || '') === parent);
+    const same = sibs.find(x => (!parent && c.key && x.key === c.key) || nameTaken([x], n.zh, n.en));
+    if (same) { remap[c.id] = same.id; continue; }
+    const nc = { id: c.id, name: String(c.name || n.zh || n.en).slice(0, 20) };
+    if (c.names) nc.names = { zh: String(c.names.zh || '').slice(0, 20), en: String(c.names.en || '').slice(0, 20) };
+    if (c.key && !parent) nc.key = c.key;
+    if (parent) nc.parent = parent;
+    cats().push(nc);
+  }
+
+  // 3. 本机删掉另一台设备已删除的分类：子分类的密码移回上一级，大分类的密码变成未分类
+  const gone = cats().filter(c => T.c[c.id]);
+  if (gone.length) {
+    const goneIds = new Set(gone.map(c => c.id));
+    for (const c of cats()) if (c.parent && goneIds.has(c.parent)) goneIds.add(c.id);
+    const moveTo = id => { const c = catById(id); return c && c.parent && !goneIds.has(c.parent) ? c.parent : ''; };
+    for (const e of session.vault.entries) if (e.cat && goneIds.has(e.cat)) e.cat = moveTo(e.cat);
+    session.vault.categories = cats().filter(c => !goneIds.has(c.id));
+  }
+
+  // 4. 合并密码条目：较新的修改胜出；删除时间晚于最后修改的条目会被删掉
+  let added = 0, updated = 0, removed = 0;
+  for (const inc of (Array.isArray(data.entries) ? data.entries : [])) {
+    if (!inc || typeof inc.name !== 'string' || !inc.id) continue;
+    if (T.e[inc.id] && T.e[inc.id] >= (inc.updated || 0)) continue;
+    if (inc.cat && remap[inc.cat]) inc.cat = remap[inc.cat];
+    const ex = session.vault.entries.find(x => x.id === inc.id);
+    if (!ex) { session.vault.entries.push(inc); added++; }
+    else if ((inc.updated || 0) > (ex.updated || 0)) { Object.assign(ex, inc); updated++; }
+  }
+  const before = session.vault.entries.length;
+  session.vault.entries = session.vault.entries.filter(e => !(T.e[e.id] && T.e[e.id] >= (e.updated || 0)));
+  removed = before - session.vault.entries.length;
+
+  // 5. 指向不存在分类的条目设为未分类
+  for (const e of session.vault.entries) if (e.cat && !catById(e.cat)) e.cat = '';
+  return { added, updated, removed };
+}
+
+let impMode = 'backup';
 $('impForm').addEventListener('submit', async e => {
   e.preventDefault(); $('impErr').textContent = t('decrypting');
-  try {
-    const r = await open(pendingImport, $('impPw').value);
-    const incoming = Array.isArray(r.data.entries) ? r.data.entries : [];
-    const remap = {};
-    const incCats = (Array.isArray(r.data.categories) ? r.data.categories : [])
-      .filter(c => c && typeof c.id === 'string' && (typeof c.name === 'string' || c.names));
-    // 先合并大分类，再合并子分类
-    for (const c of [...incCats.filter(c => !c.parent), ...incCats.filter(c => c.parent)]) {
-      if (catById(c.id)) continue;
-      let parent = c.parent ? (remap[c.parent] || c.parent) : '';
-      if (parent && (!catById(parent) || catById(parent).parent)) parent = '';
-      const n = namesOf(c);
-      const sibs = cats().filter(x => (x.parent || '') === parent);
-      const same = sibs.find(x => (!parent && c.key && x.key === c.key) || nameTaken([x], n.zh, n.en));
-      if (same) { remap[c.id] = same.id; continue; }
-      const nc = { id: c.id, name: String(c.name || n.zh || n.en).slice(0, 20) };
-      if (c.names) nc.names = { zh: String(c.names.zh || '').slice(0, 20), en: String(c.names.en || '').slice(0, 20) };
-      if (c.key && !parent) nc.key = c.key;
-      if (parent) nc.parent = parent;
-      cats().push(nc);
-    }
-    let added = 0, updated = 0;
-    for (const inc of incoming) {
-      if (!inc || typeof inc.name !== 'string') continue;
-      if (inc.cat && remap[inc.cat]) inc.cat = remap[inc.cat];
-      const ex = session.vault.entries.find(x => x.id === inc.id);
-      if (!ex) { session.vault.entries.push(inc); added++; }
-      else if ((inc.updated||0) > (ex.updated||0)) { Object.assign(ex, inc); updated++; }
-    }
-    await persist(); renderList(); pendingImport = null; $('impDlg').close();
-    toast(t('importDone', { a: added, u: updated }));
-  } catch { $('impErr').textContent = t('badBackupPw'); }
+  let r;
+  try { r = await open(pendingImport, $('impPw').value); }
+  catch { return $('impErr').textContent = t('badBackupPw'); }
+  $('impDlg').close();
+  if (impMode === 'sync') return finishSync(r.data);
+  const res = mergeVault(r.data);
+  await persist(); renderList(); pendingImport = null;
+  toast(t('importDone', { a: res.added, u: res.updated }));
 });
+
+// ---------- iCloud 同步 ----------
+const SYNC_NAME = 'passbook-sync.json';
+function paintSyncInfo(){
+  $('syncInfo').textContent = prefs.lastSync ? t('lastSync', { d: new Date(prefs.lastSync).toLocaleString(locale()) }) : t('neverSynced');
+}
+$('settingsBtn').addEventListener('click', paintSyncInfo);
+
+async function saveSyncFile(){
+  const raw = safeGet(STORE_KEY); if (!raw) return;
+  const file = new File([raw], SYNC_NAME, { type:'application/json' });
+  try {
+    if (navigator.canShare?.({ files:[file] })) {
+      await navigator.share({ files:[file], title:SYNC_NAME });
+      prefs.lastSync = Date.now(); savePrefs(); paintSyncInfo(); return;
+    }
+  } catch (err) { if (err.name === 'AbortError') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = SYNC_NAME;
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  prefs.lastSync = Date.now(); savePrefs(); paintSyncInfo();
+  toast(t('syncSaved'), 3000);
+}
+$('sSyncSave').addEventListener('click', saveSyncFile);
+$('syncSaveBtn').addEventListener('click', async () => { await saveSyncFile(); $('syncDlg').close(); });
+
+$('sSync').addEventListener('click', () => { $('syncFile').value = ''; $('syncFile').click(); });
+$('syncFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  let o;
+  try { o = JSON.parse(await f.text()); if (!validBlob(o)) throw 0; }
+  catch { return toast(t('badBackup')); }
+  $('settingsDlg').close();
+  toast(t('decrypting'));
+  try { const r = await open(o, session.pw); return finishSync(r.data); }
+  catch {}
+  // 另一台设备用的是不同的主密码
+  pendingImport = o; impMode = 'sync'; $('impPw').value = ''; $('impErr').textContent = '';
+  $('impSubText').innerHTML = t('syncPwSub');
+  $('impDlg').showModal();
+});
+async function finishSync(data){
+  const res = mergeVault(data);
+  await persist(); renderList(); pendingImport = null;
+  $('syncResult').textContent = t('syncResult', { a: res.added, u: res.updated, d: res.removed });
+  $('syncDlg').showModal();
+}
 
 $('sChangePw').addEventListener('click', () => {
   ['pwOld','pwNew','pwNew2'].forEach(id => $(id).value = ''); $('pwErr').textContent = '';
@@ -964,7 +1073,7 @@ $('pwForm').addEventListener('submit', async e => {
   try { await open(JSON.parse(safeGet(STORE_KEY)), $('pwOld').value); }
   catch { return $('pwErr').textContent = t('wrongCurrent'); }
   const salt = rand(16);
-  session.key = await deriveKey(a, salt, ITER); session.salt = salt; session.iter = ITER;
+  session.key = await deriveKey(a, salt, ITER); session.salt = salt; session.iter = ITER; session.pw = a;
   await persist(); $('pwDlg').close(); toast(t('pwChanged'), 3500);
 });
 
@@ -1156,6 +1265,7 @@ function catRow(c){
         if (!confirm(t('confirmDelSub', { name: catName(c) }) + (n ? t('confirmDelSubN', { n, parent: catName(p) }) : ''))) return;
         for (const e of es) if (e.cat === c.id) e.cat = p.id;
         session.vault.categories = cats().filter(x => x.id !== c.id);
+        tomb('c', c.id);
       } else {
         // 删大分类：连同子分类一起删，里面的密码变成未分类
         const subs = subsOf(c.id), ids = new Set([c.id, ...subs.map(s => s.id)]);
@@ -1165,6 +1275,7 @@ function catRow(c){
         if (!confirm(msg)) return;
         for (const e of es) if (ids.has(e.cat)) e.cat = '';
         session.vault.categories = cats().filter(x => !ids.has(x.id));
+        for (const id of ids) tomb('c', id);
       }
       await persist(); renderCatList();
     }, 'danger'));

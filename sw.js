@@ -1,5 +1,5 @@
 // 离线缓存：先用网络拿最新版本，失败时用缓存（保证没网也能打开）
-const CACHE = 'passbook-v11';
+const CACHE = 'passbook-v12';
 const FILES = ['./', './index.html', './manifest.json', './icon-180.png', './icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
