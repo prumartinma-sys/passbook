@@ -99,8 +99,7 @@ input[type=checkbox]{accent-color:var(--accent);width:18px;height:18px}
 .menu button{border:0;background:transparent;text-align:left;padding:14px;border-bottom:1px solid var(--line);cursor:pointer}
 .menu button:last-child{border-bottom:0}
 dialog{overflow:auto}
-.chips{display:flex;gap:8px;overflow-x:auto;margin:10px -16px 0;padding:0 16px 2px;scrollbar-width:none}
-.chips::-webkit-scrollbar{display:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
 .chip{flex:none;border:0;border-radius:999px;padding:6px 12px;background:var(--field);font-size:14px;cursor:pointer;white-space:nowrap;color:var(--text)}
 .chip.on{background:var(--accent);color:var(--accent-ink)}
 .chip .n{opacity:.65;margin-left:4px;font-size:12px}
