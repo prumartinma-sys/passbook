@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>密码本</title>
+<title>密码本 · Passbook</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -122,188 +122,196 @@ select.inline{width:auto;padding:6px 10px;font-size:15px;background:var(--card)}
   padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:100}
 .toast.show{opacity:1}
 </style>
+<style>
+.langbar{position:absolute;top:calc(12px + env(safe-area-inset-top));right:calc(16px + env(safe-area-inset-right))}
+.langbar .btn{background:var(--card);border:1px solid var(--line)}
+</style>
 </head>
 <body>
 
-<!-- 首次设置 -->
+<div class="langbar hidden" id="langbar"><button class="btn small" type="button" id="langToggle"></button></div>
+
+<!-- 首次设置 / Setup -->
 <section id="setup" class="wrap auth hidden">
   <img class="logo" src="icon-180.png" alt="">
-  <h1>创建密码本</h1>
-  <p class="sub">设置一个主密码，用来加密你保存的所有密码。</p>
+  <h1 data-i18n="setupTitle"></h1>
+  <p class="sub" data-i18n="setupSub"></p>
   <form id="setupForm" class="auth" style="min-height:0;gap:12px">
-    <div class="field"><label for="setupPw">主密码（至少 8 位）</label>
+    <div class="field"><label for="setupPw" data-i18n="setupPwLabel"></label>
       <input id="setupPw" type="password" autocomplete="new-password" required minlength="8"></div>
     <div class="meter"><i id="setupMeter"></i></div>
-    <div class="field"><label for="setupPw2">再输入一次</label>
+    <div class="field"><label for="setupPw2" data-i18n="setupPw2Label"></label>
       <input id="setupPw2" type="password" autocomplete="new-password" required></div>
     <div class="err" id="setupErr"></div>
-    <button class="btn primary" type="submit">创建</button>
+    <button class="btn primary" type="submit" data-i18n="create"></button>
   </form>
-  <p class="note">⚠️ 主密码不会上传到任何地方，也<b>无法找回</b>。忘记主密码 = 数据永久无法解密。请记牢，并定期在「设置」里导出加密备份。</p>
+  <p class="note" data-i18n-html="setupWarn"></p>
 </section>
 
-<!-- 解锁 -->
+<!-- 解锁 / Lock -->
 <section id="lock" class="wrap auth hidden">
   <img class="logo" src="icon-180.png" alt="">
-  <h1>密码本</h1>
-  <p class="sub">输入主密码解锁</p>
+  <h1 data-i18n="appName"></h1>
+  <p class="sub" data-i18n="lockSub"></p>
   <form id="lockForm" class="auth" style="min-height:0;gap:12px">
-    <input id="lockPw" type="password" autocomplete="current-password" placeholder="主密码" required>
+    <input id="lockPw" type="password" autocomplete="current-password" data-i18n-ph="masterPw" required>
     <div class="err" id="lockErr"></div>
-    <button class="btn primary" type="submit" id="unlockBtn">解锁</button>
+    <button class="btn primary" type="submit" id="unlockBtn" data-i18n="unlock"></button>
   </form>
 </section>
 
-<!-- 主界面 -->
+<!-- 主界面 / Main -->
 <section id="main" class="hidden">
   <header class="top">
     <div class="row">
-      <h2>密码本</h2>
+      <h2 data-i18n="appName"></h2>
       <div class="row" style="gap:2px">
-        <button class="icon-btn" id="settingsBtn" aria-label="设置">
+        <button class="icon-btn" id="settingsBtn" data-i18n-aria="settings">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
         </button>
-        <button class="icon-btn" id="lockBtn" aria-label="锁定">
+        <button class="icon-btn" id="lockBtn" data-i18n-aria="lock">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
         </button>
       </div>
     </div>
-    <input id="search" class="search" type="search" placeholder="搜索名称、用户名、网址" autocomplete="off">
+    <input id="search" class="search" type="search" data-i18n-ph="searchPh" autocomplete="off">
     <div class="chips" id="chips"></div>
   </header>
   <div class="wrap" style="padding-top:0;padding-bottom:110px">
     <div class="count" id="count"></div>
     <div class="list" id="list"></div>
-    <div class="empty hidden" id="empty">还没有保存任何密码<br>点右下角 ＋ 添加</div>
+    <div class="empty hidden" id="empty" data-i18n-html="emptyList"></div>
   </div>
-  <button class="fab" id="addBtn" aria-label="添加">＋</button>
+  <button class="fab" id="addBtn" data-i18n-aria="add">＋</button>
 </section>
 
-<!-- 详情 -->
+<!-- 详情 / Detail -->
 <dialog id="detailDlg">
   <div class="sheet">
-    <div class="sheet-head"><h3 id="dTitle"></h3><button class="btn small" data-close>关闭</button></div>
-    <div class="kv"><div class="row"><div class="grow k" style="font-size:13px">分类</div><select id="dCat" class="inline"></select></div></div>
-    <div class="kv" id="dUserRow"><div class="row"><div class="grow"><div class="k">用户名</div><div class="v" id="dUser"></div></div>
-      <button class="btn small" id="dCopyUser">复制</button></div></div>
-    <div class="kv" id="dPwRow"><div class="row"><div class="grow"><div class="k">密码</div><div class="v mono" id="dPw"></div></div>
-      <button class="btn small" id="dShowPw">显示</button><button class="btn small primary" id="dCopyPw">复制</button></div></div>
-    <div class="kv" id="dUrlRow"><div class="row"><div class="grow"><div class="k">网址</div><div class="v" id="dUrl"></div></div>
-      <button class="btn small" id="dOpenUrl">打开</button></div></div>
-    <div class="kv" id="dNoteRow"><div class="k">备注</div><div class="v" id="dNote"></div></div>
+    <div class="sheet-head"><h3 id="dTitle"></h3><button class="btn small" data-close data-i18n="close"></button></div>
+    <div class="kv"><div class="row"><div class="grow k" style="font-size:13px" data-i18n="category"></div><select id="dCat" class="inline"></select></div></div>
+    <div class="kv" id="dUserRow"><div class="row"><div class="grow"><div class="k" data-i18n="username"></div><div class="v" id="dUser"></div></div>
+      <button class="btn small" id="dCopyUser" data-i18n="copy"></button></div></div>
+    <div class="kv" id="dPwRow"><div class="row"><div class="grow"><div class="k" data-i18n="password"></div><div class="v mono" id="dPw"></div></div>
+      <button class="btn small" id="dShowPw"></button><button class="btn small primary" id="dCopyPw" data-i18n="copy"></button></div></div>
+    <div class="kv" id="dUrlRow"><div class="row"><div class="grow"><div class="k" data-i18n="url"></div><div class="v" id="dUrl"></div></div>
+      <button class="btn small" id="dOpenUrl" data-i18n="open"></button></div></div>
+    <div class="kv" id="dNoteRow"><div class="k" data-i18n="notes"></div><div class="v" id="dNote"></div></div>
     <div class="meter-label" id="dMeta"></div>
-    <div class="row"><button class="btn grow" id="dEdit">编辑</button><button class="btn danger" id="dDelete">删除</button></div>
+    <div class="row"><button class="btn grow" id="dEdit" data-i18n="edit"></button><button class="btn danger" id="dDelete" data-i18n="delete"></button></div>
   </div>
 </dialog>
 
-<!-- 编辑 -->
+<!-- 编辑 / Edit -->
 <dialog id="editDlg">
   <form class="sheet" id="editForm" method="dialog">
-    <div class="sheet-head"><h3 id="eHead">添加密码</h3><button class="btn small" type="button" data-close>取消</button></div>
-    <div class="field"><label for="eName">名称</label><input id="eName" type="text" required placeholder="例如：微信、工商银行" autocomplete="off"></div>
-    <div class="field"><label for="eCat">分类</label><select id="eCat"></select></div>
-    <div class="field"><label for="eUser">用户名 / 账号</label><input id="eUser" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
-    <div class="field"><label for="ePw">密码</label>
+    <div class="sheet-head"><h3 id="eHead"></h3><button class="btn small" type="button" data-close data-i18n="cancel"></button></div>
+    <div class="field"><label for="eName" data-i18n="name"></label><input id="eName" type="text" required data-i18n-ph="namePh" autocomplete="off"></div>
+    <div class="field"><label for="eCat" data-i18n="category"></label><select id="eCat"></select></div>
+    <div class="field"><label for="eUser" data-i18n="usernameAccount"></label><input id="eUser" type="text" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+    <div class="field"><label for="ePw" data-i18n="password"></label>
       <div class="row"><input class="grow" id="ePw" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
-        <button class="btn small" type="button" id="eToggle">显示</button>
-        <button class="btn small" type="button" id="eGenToggle">生成</button></div>
+        <button class="btn small" type="button" id="eToggle"></button>
+        <button class="btn small" type="button" id="eGenToggle" data-i18n="generate"></button></div>
       <div class="meter"><i id="eMeter"></i></div><div class="meter-label" id="eMeterLabel"></div>
     </div>
     <div class="gen hidden" id="genBox">
-      <div class="row"><span style="font-size:14px">长度</span><input type="range" id="gLen" min="8" max="40" value="20"><b id="gLenV" style="width:28px;text-align:right">20</b></div>
+      <div class="row"><span style="font-size:14px" data-i18n="length"></span><input type="range" id="gLen" min="8" max="40" value="20"><b id="gLenV" style="width:28px;text-align:right">20</b></div>
       <div class="opts">
-        <label><input type="checkbox" id="gUpper" checked>大写</label>
-        <label><input type="checkbox" id="gLower" checked>小写</label>
-        <label><input type="checkbox" id="gDigit" checked>数字</label>
-        <label><input type="checkbox" id="gSym" checked>符号</label>
-        <label><input type="checkbox" id="gAmb" checked>排除易混字符</label>
+        <label><input type="checkbox" id="gUpper" checked><span data-i18n="upper"></span></label>
+        <label><input type="checkbox" id="gLower" checked><span data-i18n="lower"></span></label>
+        <label><input type="checkbox" id="gDigit" checked><span data-i18n="digits"></span></label>
+        <label><input type="checkbox" id="gSym" checked><span data-i18n="symbols"></span></label>
+        <label><input type="checkbox" id="gAmb" checked><span data-i18n="avoidAmb"></span></label>
       </div>
-      <button class="btn small primary" type="button" id="gRun">重新生成</button>
+      <button class="btn small primary" type="button" id="gRun" data-i18n="regenerate"></button>
     </div>
-    <div class="field"><label for="eUrl">网址</label><input id="eUrl" type="text" inputmode="url" autocomplete="off" autocapitalize="off" placeholder="https://"></div>
-    <div class="field"><label for="eNote">备注</label><textarea id="eNote"></textarea></div>
-    <button class="btn primary" type="submit">保存</button>
+    <div class="field"><label for="eUrl" data-i18n="url"></label><input id="eUrl" type="text" inputmode="url" autocomplete="off" autocapitalize="off" placeholder="https://"></div>
+    <div class="field"><label for="eNote" data-i18n="notes"></label><textarea id="eNote"></textarea></div>
+    <button class="btn primary" type="submit" data-i18n="save"></button>
   </form>
 </dialog>
 
-<!-- 设置 -->
+<!-- 设置 / Settings -->
 <dialog id="settingsDlg">
   <div class="sheet">
-    <div class="sheet-head"><h3>设置</h3><button class="btn small" data-close>关闭</button></div>
-    <div class="field"><label for="sAutoLock">自动锁定</label>
+    <div class="sheet-head"><h3 data-i18n="settings"></h3><button class="btn small" data-close data-i18n="close"></button></div>
+    <div class="field"><label for="sLang">语言 / Language</label>
+      <select id="sLang"><option value="zh">中文</option><option value="en">English</option></select></div>
+    <div class="field"><label for="sAutoLock" data-i18n="autoLock"></label>
       <select id="sAutoLock">
-        <option value="0">离开 App 后立即锁定</option>
-        <option value="60">1 分钟无操作</option>
-        <option value="300">5 分钟无操作</option>
-        <option value="900">15 分钟无操作</option>
+        <option value="0" data-i18n="al0"></option>
+        <option value="60" data-i18n="al60"></option>
+        <option value="300" data-i18n="al300"></option>
+        <option value="900" data-i18n="al900"></option>
       </select></div>
     <div class="menu">
-      <button id="sCats">管理分类</button>
-      <button id="sAutoCat">自动分类「未分类」的条目</button>
+      <button id="sCats" data-i18n="manageCats"></button>
+      <button id="sAutoCat" data-i18n="autoCat"></button>
     </div>
     <div class="menu">
-      <button id="sPaste">从记事本粘贴导入</button>
-      <button id="sExport">导出加密备份</button>
-      <button id="sImport">从备份导入（合并）</button>
-      <button id="sChangePw">修改主密码</button>
+      <button id="sPaste" data-i18n="pasteImport"></button>
+      <button id="sExport" data-i18n="exportBackup"></button>
+      <button id="sImport" data-i18n="importBackup"></button>
+      <button id="sChangePw" data-i18n="changePw"></button>
     </div>
-    <div class="menu"><button id="sWipe" class="btn danger" style="border-radius:0;font-weight:600">清除所有数据</button></div>
-    <p class="meter-label">数据使用 AES-256-GCM 加密，密钥由主密码经 PBKDF2-SHA256（60 万次）派生，只保存在本设备上。</p>
+    <div class="menu"><button id="sWipe" class="btn danger" style="border-radius:0;font-weight:600" data-i18n="wipe"></button></div>
+    <p class="meter-label" data-i18n="cryptoNote"></p>
     <input type="file" id="importFile" accept=".json,application/json" class="hidden">
   </div>
 </dialog>
 
-<!-- 修改主密码 -->
+<!-- 修改主密码 / Change password -->
 <dialog id="pwDlg">
   <form class="sheet" id="pwForm" method="dialog">
-    <div class="sheet-head"><h3>修改主密码</h3><button class="btn small" type="button" data-close>取消</button></div>
-    <input id="pwOld" type="password" placeholder="当前主密码" autocomplete="current-password" required>
-    <input id="pwNew" type="password" placeholder="新主密码（至少 8 位）" autocomplete="new-password" required minlength="8">
-    <input id="pwNew2" type="password" placeholder="再输入一次新主密码" autocomplete="new-password" required>
+    <div class="sheet-head"><h3 data-i18n="changePw"></h3><button class="btn small" type="button" data-close data-i18n="cancel"></button></div>
+    <input id="pwOld" type="password" data-i18n-ph="pwOldPh" autocomplete="current-password" required>
+    <input id="pwNew" type="password" data-i18n-ph="pwNewPh" autocomplete="new-password" required minlength="8">
+    <input id="pwNew2" type="password" data-i18n-ph="pwNew2Ph" autocomplete="new-password" required>
     <div class="err" id="pwErr"></div>
-    <button class="btn primary" type="submit">确认修改</button>
+    <button class="btn primary" type="submit" data-i18n="confirmChange"></button>
   </form>
 </dialog>
 
-<!-- 输入备份密码 -->
+<!-- 输入备份密码 / Backup password -->
 <dialog id="impDlg">
   <form class="sheet" id="impForm" method="dialog">
-    <div class="sheet-head"><h3>导入备份</h3><button class="btn small" type="button" data-close>取消</button></div>
-    <p class="sub" style="margin:0">请输入<b>创建该备份时</b>使用的主密码。导入的条目会合并到当前密码本。</p>
-    <input id="impPw" type="password" placeholder="备份的主密码" autocomplete="off" required>
+    <div class="sheet-head"><h3 data-i18n="importBackupTitle"></h3><button class="btn small" type="button" data-close data-i18n="cancel"></button></div>
+    <p class="sub" style="margin:0" data-i18n-html="impSub"></p>
+    <input id="impPw" type="password" data-i18n-ph="impPwPh" autocomplete="off" required>
     <div class="err" id="impErr"></div>
-    <button class="btn primary" type="submit">导入</button>
+    <button class="btn primary" type="submit" data-i18n="import"></button>
   </form>
 </dialog>
 
-<!-- 管理分类 -->
+<!-- 管理分类 / Categories -->
 <dialog id="catDlg">
   <div class="sheet">
-    <div class="sheet-head"><h3>管理分类</h3><button class="btn small" type="button" data-close>完成</button></div>
+    <div class="sheet-head"><h3 data-i18n="manageCats"></h3><button class="btn small" type="button" data-close data-i18n="done"></button></div>
     <form id="catAddForm" class="row">
-      <input class="grow" id="catNew" type="text" placeholder="新分类名称，例如：工作" maxlength="20" autocomplete="off">
-      <button class="btn primary small" type="submit">添加</button>
+      <input class="grow" id="catNew" type="text" data-i18n-ph="catNewPh" maxlength="20" autocomplete="off">
+      <button class="btn primary small" type="submit" data-i18n="add"></button>
     </form>
     <div class="menu" id="catList"></div>
-    <p class="meter-label" style="margin:0">删除分类不会删除里面的密码，它们会变成「未分类」。</p>
+    <p class="meter-label" style="margin:0" data-i18n="catDelNote"></p>
   </div>
 </dialog>
 
-<!-- 从记事本导入 -->
+<!-- 从记事本导入 / Paste import -->
 <dialog id="pasteDlg">
   <div class="sheet">
-    <div class="sheet-head"><h3>从记事本导入</h3><button class="btn small" type="button" data-close>取消</button></div>
+    <div class="sheet-head"><h3 data-i18n="pasteTitle"></h3><button class="btn small" type="button" data-close data-i18n="cancel"></button></div>
     <div id="pasteStep1" style="display:flex;flex-direction:column;gap:12px">
-      <p class="sub" style="margin:0;font-size:14px">在「备忘录」打开记密码的笔记 → 全选 → 拷贝，再粘贴到下面。内容只在本机识别，不会上传。</p>
-      <textarea id="pasteText" rows="9" autocapitalize="off" spellcheck="false" placeholder="支持多种写法，例如：&#10;&#10;微信&#10;账号：abc123&#10;密码：xxxxxx&#10;&#10;邮箱 账号:me@mail.com 密码:xxxx&#10;&#10;淘宝 myname mypass"></textarea>
-      <div class="row"><button class="btn grow" type="button" id="pasteClip">从剪贴板粘贴</button><button class="btn primary grow" type="button" id="pasteParse">识别</button></div>
+      <p class="sub" style="margin:0;font-size:14px" data-i18n="pasteHelp"></p>
+      <textarea id="pasteText" rows="9" autocapitalize="off" spellcheck="false" data-i18n-ph="pastePh"></textarea>
+      <div class="row"><button class="btn grow" type="button" id="pasteClip" data-i18n="pasteClip"></button><button class="btn primary grow" type="button" id="pasteParse" data-i18n="detect"></button></div>
     </div>
     <div id="pasteStep2" class="hidden" style="display:flex;flex-direction:column;gap:12px">
-      <div class="row"><div class="grow meter-label" id="pasteSummary"></div><button class="btn small" type="button" id="pasteBack">返回修改</button></div>
-      <div class="row"><span class="grow" style="font-size:14px">导入到分类</span><select id="pasteCat" class="inline"></select></div>
-      <p class="meter-label" style="margin:0">请逐条检查，识别不对的可以直接改，不要的取消勾选。</p>
+      <div class="row"><div class="grow meter-label" id="pasteSummary"></div><button class="btn small" type="button" id="pasteBack" data-i18n="back"></button></div>
+      <div class="row"><span class="grow" style="font-size:14px" data-i18n="importToCat"></span><select id="pasteCat" class="inline"></select></div>
+      <p class="meter-label" style="margin:0" data-i18n="reviewHelp"></p>
       <div id="pasteList"></div>
-      <button class="btn primary" type="button" id="pasteImport">导入</button>
+      <button class="btn primary" type="button" id="pasteImport"></button>
     </div>
   </div>
 </dialog>
@@ -323,13 +331,118 @@ const $ = id => document.getElementById(id);
 function safeGet(k){ try { return localStorage.getItem(k); } catch { return null; } }
 function safeSet(k,v){ try { localStorage.setItem(k,v); return true; } catch { return false; } }
 function safeDel(k){ try { localStorage.removeItem(k); } catch {} }
-const prefs = Object.assign({ autoLock: 300 }, JSON.parse(safeGet(PREF_KEY) || '{}'));
+let storedPrefs = {}; try { storedPrefs = JSON.parse(safeGet(PREF_KEY) || '{}') || {}; } catch {}
+const prefs = Object.assign({ autoLock: 300, lang: /^zh/i.test(navigator.language || '') ? 'zh' : 'en' }, storedPrefs);
 function savePrefs(){ safeSet(PREF_KEY, JSON.stringify(prefs)); }
+
+// ---------- 语言 / i18n ----------
+const I18N = {
+zh: {
+  appName:'密码本', setupTitle:'创建密码本', setupSub:'设置一个主密码，用来加密你保存的所有密码。',
+  setupPwLabel:'主密码（至少 8 位）', setupPw2Label:'再输入一次', create:'创建',
+  setupWarn:'⚠️ 主密码不会上传到任何地方，也<b>无法找回</b>。忘记主密码 = 数据永久无法解密。请记牢，并定期在「设置」里导出加密备份。',
+  lockSub:'输入主密码解锁', masterPw:'主密码', unlock:'解锁', settings:'设置', lock:'锁定', add:'添加',
+  searchPh:'搜索名称、用户名、网址', emptyList:'还没有保存任何密码<br>点右下角 ＋ 添加',
+  close:'关闭', category:'分类', username:'用户名', copy:'复制', password:'密码', show:'显示', hide:'隐藏',
+  url:'网址', open:'打开', notes:'备注', edit:'编辑', delete:'删除', cancel:'取消', save:'保存', done:'完成',
+  addTitle:'添加密码', name:'名称', namePh:'例如：微信、工商银行', usernameAccount:'用户名 / 账号',
+  generate:'生成', length:'长度', upper:'大写', lower:'小写', digits:'数字', symbols:'符号', avoidAmb:'排除易混字符', regenerate:'重新生成',
+  autoLock:'自动锁定', al0:'离开 App 后立即锁定', al60:'1 分钟无操作', al300:'5 分钟无操作', al900:'15 分钟无操作',
+  manageCats:'管理分类', autoCat:'自动分类「未分类」的条目', pasteImport:'从记事本粘贴导入', exportBackup:'导出加密备份',
+  importBackup:'从备份导入（合并）', changePw:'修改主密码', wipe:'清除所有数据',
+  cryptoNote:'数据使用 AES-256-GCM 加密，密钥由主密码经 PBKDF2-SHA256（60 万次）派生，只保存在本设备上。',
+  pwOldPh:'当前主密码', pwNewPh:'新主密码（至少 8 位）', pwNew2Ph:'再输入一次新主密码', confirmChange:'确认修改',
+  importBackupTitle:'导入备份', impSub:'请输入<b>创建该备份时</b>使用的主密码。导入的条目会合并到当前密码本。', impPwPh:'备份的主密码', import:'导入',
+  catNewPh:'新分类名称，例如：工作', catDelNote:'删除分类不会删除里面的密码，它们会变成「未分类」。',
+  pasteTitle:'从记事本导入', pasteHelp:'在「备忘录」打开记密码的笔记 → 全选 → 拷贝，再粘贴到下面。内容只在本机识别，不会上传。',
+  pastePh:'支持多种写法，例如：\n\n微信\n账号：abc123\n密码：xxxxxx\n\n邮箱 账号:me@mail.com 密码:xxxx\n\n淘宝 myname mypass',
+  pasteClip:'从剪贴板粘贴', detect:'识别', back:'返回修改', importToCat:'导入到分类', reviewHelp:'请逐条检查，识别不对的可以直接改，不要的取消勾选。',
+  errMin8:'主密码至少 8 位', errMismatch:'两次输入不一致', creating:'正在创建…', unlocking:'正在解锁…', wrongPw:'主密码错误',
+  saveFail:'保存失败：存储不可用', found:'找到 {n} 条', total:'共 {n} 条', nItems:'{n} 条', catEmpty:'这个分类还没有密码',
+  all:'全部', uncategorized:'未分类', addCatChip:'＋ 分类', newCatOpt:'＋ 新建分类…', autoDetect:'自动识别',
+  lastModified:'最后修改：{d}', userCopied:'用户名已复制', pwCopied:'密码已复制，60 秒后尝试清除剪贴板', copyFail:'复制失败，请长按手动复制',
+  badUrl:'网址无效', confirmDelete:'确定删除「{name}」？此操作无法撤销。', deleted:'已删除', movedTo:'已移到「{name}」', setUncat:'已设为未分类',
+  saved:'已保存', weak:'弱', fair:'一般', strong:'强', vstrong:'很强', strength:'强度：{t}', updated:'已更新',
+  backupFile:'密码本备份', exported:'备份已导出（仍是加密的）', badBackup:'不是有效的密码本备份文件', decrypting:'正在解密…',
+  importDone:'导入完成：新增 {a}，更新 {u}', badBackupPw:'密码错误或文件已损坏', errNewMin8:'新主密码至少 8 位', verifying:'正在验证…',
+  wrongCurrent:'当前主密码错误', pwChanged:'主密码已修改，记得重新导出备份',
+  wipeConfirm:'将永久删除本设备上的所有密码，无法恢复。确定继续？', wipePrompt:'请输入「删除」二字确认', wipeWord:'删除',
+  newCatPrompt:'新分类名称', renamePrompt:'新的分类名称', rename:'改名', moveUp:'上移', catExists:'已经有这个分类了',
+  confirmDelCat:'删除分类「{name}」？', confirmDelCatN:'里面的 {n} 条密码会变成「未分类」，不会被删除。', noCats:'还没有分类',
+  allHaveCat:'所有条目都已经有分类了', autoCatDone:'自动分好了 {n} 条', autoCatRest:'，还有 {m} 条没认出来，请点进去手动选分类',
+  clipFail:'无法读取剪贴板，请长按输入框粘贴', nothingFound:'没识别到内容，请检查粘贴的文字', pasteSummary:'识别出 {a} 条，已选 {b} 条',
+  importN:'导入 {n} 条', itemN:'第 {i} 条', dupTag:'密码本里已有同名同账号', noPwTag:'没识别到密码', account:'账号',
+  untitled:'未命名', pasteDone:'已导入 {n} 条。确认无误后，记得删掉备忘录里的明文密码',
+  insecureTitle:'无法运行', insecureMsg:'密码本需要在 HTTPS（或本机 localhost）下打开，才能使用浏览器的加密功能。', otherLang:'English',
+},
+en: {
+  appName:'Passbook', setupTitle:'Create your vault', setupSub:'Set a master password. It encrypts everything you save.',
+  setupPwLabel:'Master password (at least 8 characters)', setupPw2Label:'Confirm master password', create:'Create',
+  setupWarn:'⚠️ Your master password never leaves this device and <b>cannot be recovered</b>. Forget it and your data is gone for good. Remember it, and export an encrypted backup from Settings regularly.',
+  lockSub:'Enter your master password to unlock', masterPw:'Master password', unlock:'Unlock', settings:'Settings', lock:'Lock', add:'Add',
+  searchPh:'Search name, username, URL', emptyList:'No passwords yet<br>Tap ＋ to add one',
+  close:'Close', category:'Category', username:'Username', copy:'Copy', password:'Password', show:'Show', hide:'Hide',
+  url:'URL', open:'Open', notes:'Notes', edit:'Edit', delete:'Delete', cancel:'Cancel', save:'Save', done:'Done',
+  addTitle:'Add password', name:'Name', namePh:'e.g. Gmail, Chase Bank', usernameAccount:'Username / account',
+  generate:'Generate', length:'Length', upper:'A–Z', lower:'a–z', digits:'0–9', symbols:'Symbols', avoidAmb:'Avoid look-alikes', regenerate:'Regenerate',
+  autoLock:'Auto-lock', al0:'Immediately when leaving the app', al60:'After 1 minute idle', al300:'After 5 minutes idle', al900:'After 15 minutes idle',
+  manageCats:'Manage categories', autoCat:'Auto-categorize uncategorized items', pasteImport:'Import by pasting from Notes', exportBackup:'Export encrypted backup',
+  importBackup:'Import backup (merge)', changePw:'Change master password', wipe:'Erase all data',
+  cryptoNote:'Data is encrypted with AES-256-GCM. The key is derived from your master password with PBKDF2-SHA256 (600,000 rounds) and stays on this device.',
+  pwOldPh:'Current master password', pwNewPh:'New master password (8+ characters)', pwNew2Ph:'Confirm new master password', confirmChange:'Change password',
+  importBackupTitle:'Import backup', impSub:'Enter the master password that was used <b>when this backup was made</b>. Its entries will be merged into this vault.', impPwPh:"Backup's master password", import:'Import',
+  catNewPh:'New category, e.g. Work', catDelNote:'Deleting a category keeps its passwords; they become "Uncategorized".',
+  pasteTitle:'Import from Notes', pasteHelp:'Open the note with your passwords → Select All → Copy, then paste below. Text is parsed on this device only and never uploaded.',
+  pastePh:'Many formats work, e.g.:\n\nGmail\nUsername: me@gmail.com\nPassword: xxxxxx\n\nBank user: me123 password: xxxx\n\nAmazon myname mypass',
+  pasteClip:'Paste from clipboard', detect:'Detect', back:'Back', importToCat:'Import into category', reviewHelp:'Check each item. Fix anything detected wrong, and untick what you don\'t want.',
+  errMin8:'Master password must be at least 8 characters', errMismatch:"The passwords don't match", creating:'Creating…', unlocking:'Unlocking…', wrongPw:'Wrong master password',
+  saveFail:'Save failed: storage unavailable', found:'{n} found', total:'{n} items', total_one:'1 item', nItems:'{n} items', nItems_one:'1 item', catEmpty:'No passwords in this category yet',
+  all:'All', uncategorized:'Uncategorized', addCatChip:'＋ Category', newCatOpt:'＋ New category…', autoDetect:'Auto-detect',
+  lastModified:'Last modified: {d}', userCopied:'Username copied', pwCopied:'Password copied; clipboard will be cleared in 60 s', copyFail:'Copy failed; long-press to copy manually',
+  badUrl:'Invalid URL', confirmDelete:'Delete "{name}"? This cannot be undone.', deleted:'Deleted', movedTo:'Moved to "{name}"', setUncat:'Set to Uncategorized',
+  saved:'Saved', weak:'Weak', fair:'Fair', strong:'Strong', vstrong:'Very strong', strength:'Strength: {t}', updated:'Updated',
+  backupFile:'passbook-backup', exported:'Backup exported (still encrypted)', badBackup:'Not a valid Passbook backup file', decrypting:'Decrypting…',
+  importDone:'Import done: {a} added, {u} updated', badBackupPw:'Wrong password or damaged file', errNewMin8:'New master password must be at least 8 characters', verifying:'Verifying…',
+  wrongCurrent:'Current master password is wrong', pwChanged:'Master password changed. Remember to export a new backup.',
+  wipeConfirm:'This permanently deletes every password on this device. It cannot be undone. Continue?', wipePrompt:'Type DELETE to confirm', wipeWord:'DELETE',
+  newCatPrompt:'New category name', renamePrompt:'New name for this category', rename:'Rename', moveUp:'Move up', catExists:'That category already exists',
+  confirmDelCat:'Delete category "{name}"?', confirmDelCatN:' Its {n} passwords will become "Uncategorized" and will not be deleted.', noCats:'No categories yet',
+  allHaveCat:'Every item already has a category', autoCatDone:'Auto-categorized {n} items', autoCatRest:'; {m} not recognized — open them to pick a category',
+  clipFail:"Can't read the clipboard; long-press the box to paste", nothingFound:'Nothing detected; check the pasted text', pasteSummary:'{a} detected, {b} selected',
+  importN:'Import {n}', itemN:'Item {i}', dupTag:'Same name & username already saved', noPwTag:'No password detected', account:'User',
+  untitled:'Untitled', pasteDone:'Imported {n}. Once you have checked them, delete the plain-text passwords from Notes.',
+  insecureTitle:'Cannot run', insecureMsg:'Passbook must be opened over HTTPS (or localhost) to use the browser\'s encryption.', otherLang:'中文',
+},
+};
+let lang = I18N[prefs.lang] ? prefs.lang : 'en';
+const locale = () => lang === 'zh' ? 'zh-CN' : 'en-US';
+function t(k, v = {}){
+  if (lang === 'en' && v.n === 1 && I18N.en[k + '_one']) k += '_one';
+  const s = I18N[lang][k] ?? I18N.zh[k] ?? k;
+  return s.replace(/\{(\w+)\}/g, (_, x) => v[x] ?? '');
+}
+function applyI18n(){
+  document.documentElement.lang = locale();
+  document.title = t('appName');
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-html]').forEach(el => el.innerHTML = t(el.dataset.i18nHtml)); // 仅来自上面的固定文案
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', t(el.dataset.i18nAria)));
+  $('langToggle').textContent = t('otherLang');
+  $('sLang').value = lang;
+}
+function setLang(l){
+  lang = l; prefs.lang = l; savePrefs(); applyI18n();
+  if (session) renderList();
+}
+$('langToggle').addEventListener('click', () => setLang(lang === 'zh' ? 'en' : 'zh'));
+$('sLang').addEventListener('change', e => setLang(e.target.value));
 
 // ---------- 加密 ----------
 const b64 = u8 => { let s=''; for (const b of u8) s += String.fromCharCode(b); return btoa(s); };
 const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
 const rand = n => crypto.getRandomValues(new Uint8Array(n));
+const newId = () => crypto.randomUUID ? crypto.randomUUID() : b64(rand(16));
 
 async function deriveKey(pw, salt, iter){
   const base = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveKey']);
@@ -353,23 +466,24 @@ function validBlob(o){
 }
 
 // ---------- 会话状态（仅内存）----------
-let session = null; // { key, salt, iter, vault:{entries:[]} }
+let session = null; // { key, salt, iter, vault:{entries:[], categories:[]} }
 
 async function persist(){
   const blob = await seal(session.key, session.salt, session.iter, session.vault);
-  if (!safeSet(STORE_KEY, JSON.stringify(blob))) toast('保存失败：存储不可用');
+  if (!safeSet(STORE_KEY, JSON.stringify(blob))) toast(t('saveFail'));
 }
 
 // ---------- 视图 ----------
 function show(view){
   for (const v of ['setup','lock','main']) $(v).classList.toggle('hidden', v !== view);
+  $('langbar').classList.toggle('hidden', view === 'main');
 }
 function closeAllDialogs(){ document.querySelectorAll('dialog[open]').forEach(d => d.close()); }
 
 let toastTimer;
 function toast(msg, ms = 1800){
-  const t = $('toast'); t.textContent = msg; t.classList.add('show');
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), ms);
+  const el = $('toast'); el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), ms);
 }
 
 function lock(){
@@ -385,12 +499,13 @@ $('setupPw').addEventListener('input', e => paintMeter($('setupMeter'), null, e.
 $('setupForm').addEventListener('submit', async e => {
   e.preventDefault();
   const a = $('setupPw').value, b = $('setupPw2').value;
-  if (a.length < 8) return $('setupErr').textContent = '主密码至少 8 位';
-  if (a !== b) return $('setupErr').textContent = '两次输入不一致';
-  $('setupErr').textContent = '正在创建…';
+  if (a.length < 8) return $('setupErr').textContent = t('errMin8');
+  if (a !== b) return $('setupErr').textContent = t('errMismatch');
+  $('setupErr').textContent = t('creating');
   const salt = rand(16);
   const key = await deriveKey(a, salt, ITER);
   session = { key, salt, iter: ITER, vault: { entries: [] } };
+  ensureCats();
   await persist();
   $('setupPw').value = $('setupPw2').value = '';
   $('setupErr').textContent = '';
@@ -402,7 +517,7 @@ $('setupForm').addEventListener('submit', async e => {
 let failCount = 0;
 $('lockForm').addEventListener('submit', async e => {
   e.preventDefault();
-  const btn = $('unlockBtn'); btn.disabled = true; $('lockErr').textContent = '正在解锁…';
+  const btn = $('unlockBtn'); btn.disabled = true; $('lockErr').textContent = t('unlocking');
   try {
     const blob = JSON.parse(safeGet(STORE_KEY));
     const r = await open(blob, $('lockPw').value);
@@ -412,25 +527,26 @@ $('lockForm').addEventListener('submit', async e => {
     enterMain();
   } catch {
     failCount++;
-    $('lockErr').textContent = '主密码错误';
+    $('lockErr').textContent = t('wrongPw');
     $('lockPw').select();
     if (failCount >= 3) { await new Promise(r => setTimeout(r, Math.min(30, 2 ** (failCount - 2)) * 1000)); }
   } finally { btn.disabled = false; }
 });
 
-// ---------- 列表 ----------
-const COLORS = ['#2f6b57','#6b4fa0','#b35c2e','#2e6fb3','#a33d5c','#4f7a2e','#7a5a2e','#2e7a7a'];
-function colorFor(s){ let h=0; for (const c of s) h = (h*31 + c.codePointAt(0)) >>> 0; return COLORS[h % COLORS.length]; }
-
-function enterMain(){ if (ensureCats()) persist(); show('main'); renderList(); touch(); }
-
 // ---------- 分类 ----------
-const DEFAULT_CATS = ['工作', '个人邮箱', 'Apple ID', '社交', '购物', '银行金融'];
-const newId = () => crypto.randomUUID ? crypto.randomUUID() : b64(rand(16));
+const CAT_DEFS = [
+  { key:'work',   zh:'工作',     en:'Work',           re:/工作|公司|企业|work|office|钉钉|飞书|slack|jira|confluence|vpn|teams|zoom/i },
+  { key:'email',  zh:'个人邮箱', en:'Personal Email', re:/邮箱|e-?mail|gmail|outlook|hotmail|yahoo|163|126|qq邮箱|foxmail|proton|mail/i },
+  { key:'apple',  zh:'Apple ID', en:'Apple ID',       re:/apple|icloud|苹果/i },
+  { key:'social', zh:'社交',     en:'Social',         re:/微信|wechat|qq|微博|weibo|抖音|tiktok|小红书|b站|bilibili|facebook|instagram|twitter|whatsapp|telegram|line|知乎|豆瓣|linkedin|领英/i },
+  { key:'shop',   zh:'购物',     en:'Shopping',       re:/淘宝|天猫|京东|拼多多|amazon|亚马逊|闲鱼|美团|饿了么|shopee|lazada|ebay|grab/i },
+  { key:'bank',   zh:'银行金融', en:'Banking',        re:/银行|bank|支付宝|alipay|paypal|信用卡|证券|基金|保险|wise|招行|工行|建行|农行|中行/i },
+];
+const RULE_ORDER = ['apple', 'email', 'bank', 'social', 'shop', 'work'];
 let catFilter = 'all';   // 'all' | '' (未分类) | 分类 id
 function ensureCats(){
   if (Array.isArray(session.vault.categories)) return false;
-  session.vault.categories = DEFAULT_CATS.map(name => ({ id: newId(), name }));
+  session.vault.categories = CAT_DEFS.map(d => ({ id: newId(), key: d.key, name: d[lang] }));
   return true;
 }
 const cats = () => session.vault.categories;
@@ -441,19 +557,29 @@ function addCategory(name){
   const ex = cats().find(c => c.name === name); if (ex) return ex.id;
   const c = { id: newId(), name }; cats().push(c); return c.id;
 }
+function guessCat(e){
+  const s = [e.name, e.url].join(' ');
+  for (const k of RULE_ORDER) {
+    const d = CAT_DEFS.find(x => x.key === k);
+    if (!d.re.test(s)) continue;
+    const c = cats().find(c => c.key === k || c.name === d.zh || c.name === d.en);
+    if (c) return c.id;
+  }
+  return '';
+}
 function fillCatSelect(sel, value, { withNew = true, withAuto = false } = {}){
   const opts = [];
-  if (withAuto) opts.push(['__auto', '自动识别']);
-  opts.push(['', '未分类'], ...cats().map(c => [c.id, c.name]));
-  if (withNew) opts.push(['__new', '＋ 新建分类…']);
-  sel.replaceChildren(...opts.map(([v, t]) => { const o = document.createElement('option'); o.value = v; o.textContent = t; return o; }));
+  if (withAuto) opts.push(['__auto', t('autoDetect')]);
+  opts.push(['', t('uncategorized')], ...cats().map(c => [c.id, c.name]));
+  if (withNew) opts.push(['__new', t('newCatOpt')]);
+  sel.replaceChildren(...opts.map(([v, txt]) => { const o = document.createElement('option'); o.value = v; o.textContent = txt; return o; }));
   sel.value = value; if (sel.value !== value) sel.value = '';
   sel.dataset.prev = sel.value;
 }
 function bindCatSelect(sel, onPick, opts){
   sel.addEventListener('change', async () => {
     if (sel.value === '__new') {
-      const name = (prompt('新分类名称') || '').trim();
+      const name = (prompt(t('newCatPrompt')) || '').trim();
       if (!name) { sel.value = sel.dataset.prev || ''; return; }
       const id = addCategory(name); await persist();
       fillCatSelect(sel, id, opts); renderList();
@@ -462,24 +588,18 @@ function bindCatSelect(sel, onPick, opts){
     if (onPick) onPick(sel.value);
   });
 }
-const CAT_RULES = [
-  ['Apple ID', /apple|icloud|苹果/i],
-  ['个人邮箱', /邮箱|e-?mail|gmail|outlook|hotmail|yahoo|163|126|qq邮箱|foxmail|proton|mail/i],
-  ['银行金融', /银行|bank|支付宝|alipay|paypal|信用卡|证券|基金|保险|wise|招行|工行|建行|农行|中行/i],
-  ['社交', /微信|wechat|qq|微博|weibo|抖音|tiktok|小红书|b站|bilibili|facebook|instagram|twitter|whatsapp|telegram|line|知乎|豆瓣|linkedin|领英/i],
-  ['购物', /淘宝|天猫|京东|拼多多|amazon|亚马逊|闲鱼|美团|饿了么|shopee|lazada|ebay|grab/i],
-  ['工作', /工作|公司|企业|work|office|钉钉|飞书|slack|jira|confluence|vpn|teams|zoom/i],
-];
-function guessCat(e){
-  const s = [e.name, e.url].join(' ');
-  for (const [name, re] of CAT_RULES) if (re.test(s)) { const c = cats().find(c => c.name === name); if (c) return c.id; }
-  return '';
-}
+
+// ---------- 列表 ----------
+const COLORS = ['#2f6b57','#6b4fa0','#b35c2e','#2e6fb3','#a33d5c','#4f7a2e','#7a5a2e','#2e7a7a'];
+function colorFor(s){ let h=0; for (const c of s) h = (h*31 + c.codePointAt(0)) >>> 0; return COLORS[h % COLORS.length]; }
+
+function enterMain(){ if (ensureCats()) persist(); show('main'); renderList(); touch(); }
+
 function renderChips(){
   const es = session.vault.entries;
   const n = id => es.filter(e => catOf(e) === id).length;
-  const defs = [['all', '全部', es.length], ...cats().map(c => [c.id, c.name, n(c.id)])];
-  const unc = n(''); if (unc) defs.push(['', '未分类', unc]);
+  const defs = [['all', t('all'), es.length], ...cats().map(c => [c.id, c.name, n(c.id)])];
+  const unc = n(''); if (unc) defs.push(['', t('uncategorized'), unc]);
   if (!defs.some(d => d[0] === catFilter)) catFilter = 'all';
   const chips = defs.map(([id, name, count]) => {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (id === catFilter ? ' on' : '');
@@ -487,7 +607,7 @@ function renderChips(){
     b.addEventListener('click', () => { catFilter = id; renderList(); });
     return b;
   });
-  const add = document.createElement('button'); add.type = 'button'; add.className = 'chip add'; add.textContent = '＋ 分类';
+  const add = document.createElement('button'); add.type = 'button'; add.className = 'chip add'; add.textContent = t('addCatChip');
   add.addEventListener('click', openCatManager);
   $('chips').replaceChildren(...chips, add);
 }
@@ -495,7 +615,7 @@ function renderChips(){
 function renderList(){
   renderChips();
   const q = $('search').value.trim().toLowerCase();
-  const all = session.vault.entries.slice().sort((a,b) => a.name.localeCompare(b.name, 'zh-CN'));
+  const all = session.vault.entries.slice().sort((a,b) => a.name.localeCompare(b.name, locale()));
   let items = catFilter === 'all' ? all : all.filter(e => catOf(e) === catFilter);
   if (q) items = items.filter(e => [e.name,e.user,e.url,e.note].some(x => (x||'').toLowerCase().includes(q)));
   const list = $('list');
@@ -504,23 +624,24 @@ function renderList(){
     const av = document.createElement('div'); av.className = 'avatar';
     av.textContent = [...(e.name || '?')][0].toUpperCase(); av.style.background = colorFor(e.name || '');
     const box = document.createElement('div'); box.style.minWidth = '0';
-    const t = document.createElement('div'); t.className = 't'; t.textContent = e.name;
+    const tt = document.createElement('div'); tt.className = 't'; tt.textContent = e.name;
     const s = document.createElement('div'); s.className = 's';
     if (catFilter === 'all' && catOf(e)) { const tg = document.createElement('span'); tg.className = 'tagcat'; tg.textContent = catById(e.cat).name; s.append(tg); }
     s.append(e.user || e.url || '—');
-    box.append(t, s); b.append(av, box);
+    box.append(tt, s); b.append(av, box);
     b.addEventListener('click', () => openDetail(e.id));
     return b;
   }));
   list.classList.toggle('hidden', items.length === 0);
   $('empty').classList.toggle('hidden', all.length !== 0);
-  $('count').textContent = !all.length ? '' : (q ? `找到 ${items.length} 条` : catFilter === 'all' ? `共 ${all.length} 条` : `${items.length} 条`);
-  if (all.length && !items.length && !q) $('count').textContent = '这个分类还没有密码';
+  $('count').textContent = !all.length ? '' : (q ? t('found', { n: items.length }) : catFilter === 'all' ? t('total', { n: all.length }) : t('nItems', { n: items.length }));
+  if (all.length && !items.length && !q) $('count').textContent = t('catEmpty');
 }
 $('search').addEventListener('input', renderList);
 
 // ---------- 详情 ----------
 let current = null;
+const MASK = '••••••••••';
 function openDetail(id){
   current = session.vault.entries.find(e => e.id === id);
   if (!current) return;
@@ -528,36 +649,37 @@ function openDetail(id){
   fillCatSelect($('dCat'), catOf(current));
   $('dUser').textContent = current.user || '';
   $('dUserRow').classList.toggle('hidden', !current.user);
-  $('dPw').textContent = current.pw ? '••••••••••' : '';
-  $('dShowPw').textContent = '显示';
+  $('dPw').textContent = current.pw ? MASK : '';
+  $('dShowPw').textContent = t('show'); $('dShowPw').dataset.shown = '';
   $('dPwRow').classList.toggle('hidden', !current.pw);
   $('dUrl').textContent = current.url || '';
   $('dUrlRow').classList.toggle('hidden', !current.url);
   $('dNote').textContent = current.note || '';
   $('dNoteRow').classList.toggle('hidden', !current.note);
-  $('dMeta').textContent = '最后修改：' + new Date(current.updated).toLocaleString('zh-CN');
+  $('dMeta').textContent = t('lastModified', { d: new Date(current.updated).toLocaleString(locale()) });
   $('detailDlg').showModal();
 }
 bindCatSelect($('dCat'), async v => {
   current.cat = v; current.updated = Date.now();
-  await persist(); renderList(); toast(v ? `已移到「${catById(v).name}」` : '已设为未分类');
+  await persist(); renderList(); toast(v ? t('movedTo', { name: catById(v).name }) : t('setUncat'));
 });
 $('dShowPw').addEventListener('click', () => {
-  const hidden = $('dShowPw').textContent === '显示';
-  $('dPw').textContent = hidden ? current.pw : '••••••••••';
-  $('dShowPw').textContent = hidden ? '隐藏' : '显示';
+  const showNow = !$('dShowPw').dataset.shown;
+  $('dShowPw').dataset.shown = showNow ? '1' : '';
+  $('dPw').textContent = showNow ? current.pw : MASK;
+  $('dShowPw').textContent = showNow ? t('hide') : t('show');
 });
-$('dCopyUser').addEventListener('click', () => copy(current.user, '用户名已复制'));
-$('dCopyPw').addEventListener('click', () => copy(current.pw, '密码已复制，60 秒后尝试清除剪贴板'));
+$('dCopyUser').addEventListener('click', () => copy(current.user, t('userCopied')));
+$('dCopyPw').addEventListener('click', () => copy(current.pw, t('pwCopied')));
 $('dOpenUrl').addEventListener('click', () => {
   let u = current.url.trim(); if (!/^https?:\/\//i.test(u)) u = 'https://' + u;
-  try { const p = new URL(u); if (p.protocol === 'http:' || p.protocol === 'https:') window.open(p.href, '_blank', 'noopener'); } catch { toast('网址无效'); }
+  try { const p = new URL(u); if (p.protocol === 'http:' || p.protocol === 'https:') window.open(p.href, '_blank', 'noopener'); } catch { toast(t('badUrl')); }
 });
 $('dEdit').addEventListener('click', () => { $('detailDlg').close(); openEditor(current); });
 $('dDelete').addEventListener('click', async () => {
-  if (!confirm(`确定删除「${current.name}」？此操作无法撤销。`)) return;
+  if (!confirm(t('confirmDelete', { name: current.name }))) return;
   session.vault.entries = session.vault.entries.filter(e => e.id !== current.id);
-  await persist(); $('detailDlg').close(); renderList(); toast('已删除');
+  await persist(); $('detailDlg').close(); renderList(); toast(t('deleted'));
 });
 
 let clipTimer;
@@ -568,36 +690,32 @@ async function copy(text, msg){
     clipTimer = setTimeout(async () => {
       try { if (document.hasFocus() && (await navigator.clipboard.readText?.()) === text) await navigator.clipboard.writeText(''); } catch {}
     }, 60000);
-  } catch { toast('复制失败，请长按手动复制'); }
+  } catch { toast(t('copyFail')); }
 }
 
 // ---------- 编辑 ----------
 let editing = null;
+function setPwVisible(v){ $('ePw').type = v ? 'text' : 'password'; $('eToggle').textContent = v ? t('hide') : t('show'); }
 function openEditor(entry){
   editing = entry || null;
-  $('eHead').textContent = entry ? '编辑' : '添加密码';
+  $('eHead').textContent = entry ? t('edit') : t('addTitle');
   $('eName').value = entry?.name || '';
   fillCatSelect($('eCat'), entry ? catOf(entry) : (catFilter !== 'all' ? catFilter : ''));
   $('eUser').value = entry?.user || '';
   $('ePw').value = entry?.pw || '';
   $('eUrl').value = entry?.url || '';
   $('eNote').value = entry?.note || '';
-  $('ePw').type = 'password'; $('eToggle').textContent = '显示';
+  setPwVisible(false);
   $('genBox').classList.add('hidden');
   paintMeter($('eMeter'), $('eMeterLabel'), $('ePw').value);
   $('editDlg').showModal();
   if (!entry) $('eName').focus();
 }
 $('addBtn').addEventListener('click', () => openEditor(null));
-$('eToggle').addEventListener('click', () => {
-  const show = $('ePw').type === 'password';
-  $('ePw').type = show ? 'text' : 'password'; $('eToggle').textContent = show ? '隐藏' : '显示';
-});
+$('eToggle').addEventListener('click', () => setPwVisible($('ePw').type === 'password'));
 bindCatSelect($('eCat'));
 $('ePw').addEventListener('input', () => paintMeter($('eMeter'), $('eMeterLabel'), $('ePw').value));
-$('eGenToggle').addEventListener('click', () => {
-  $('genBox').classList.remove('hidden'); runGen();
-});
+$('eGenToggle').addEventListener('click', () => { $('genBox').classList.remove('hidden'); runGen(); });
 $('editForm').addEventListener('submit', async e => {
   e.preventDefault();
   const name = $('eName').value.trim(); if (!name) return;
@@ -605,8 +723,8 @@ $('editForm').addEventListener('submit', async e => {
   const cat = $('eCat').value === '__new' ? '' : $('eCat').value;
   const data = { name, cat, user:$('eUser').value.trim(), pw:$('ePw').value, url:$('eUrl').value.trim(), note:$('eNote').value };
   if (editing) Object.assign(editing, data, { updated: now });
-  else session.vault.entries.push({ id: crypto.randomUUID ? crypto.randomUUID() : b64(rand(16)), ...data, created: now, updated: now });
-  await persist(); $('editDlg').close(); renderList(); toast('已保存');
+  else session.vault.entries.push({ id: newId(), ...data, created: now, updated: now });
+  await persist(); $('editDlg').close(); renderList(); toast(t('saved'));
 });
 
 // ---------- 密码生成 ----------
@@ -629,7 +747,7 @@ function generate(len, opt){
 function runGen(){
   $('gLenV').textContent = $('gLen').value;
   $('ePw').value = generate(+$('gLen').value, { upper:$('gUpper').checked, lower:$('gLower').checked, digit:$('gDigit').checked, sym:$('gSym').checked, amb:$('gAmb').checked });
-  $('ePw').type = 'text'; $('eToggle').textContent = '隐藏';
+  setPwVisible(true);
   paintMeter($('eMeter'), $('eMeterLabel'), $('ePw').value);
 }
 ['gLen','gUpper','gLower','gDigit','gSym','gAmb'].forEach(id => $(id).addEventListener('input', runGen));
@@ -645,26 +763,26 @@ function strength(pw){
 }
 function paintMeter(bar, label, pw){
   const bits = strength(pw);
-  const [w, c, t] = bits < 40 ? [25,'#c0392b','弱'] : bits < 60 ? [50,'#d68910','一般'] : bits < 80 ? [75,'#7cb342','强'] : [100,'#2e7d32','很强'];
+  const [w, c, k] = bits < 40 ? [25,'#c0392b','weak'] : bits < 60 ? [50,'#d68910','fair'] : bits < 80 ? [75,'#7cb342','strong'] : [100,'#2e7d32','vstrong'];
   bar.style.width = pw ? w + '%' : '0'; bar.style.background = c;
-  if (label) label.textContent = pw ? `强度：${t}` : '';
+  if (label) label.textContent = pw ? t('strength', { t: t(k) }) : '';
 }
 
 // ---------- 设置 ----------
-$('settingsBtn').addEventListener('click', () => { $('sAutoLock').value = String(prefs.autoLock); $('settingsDlg').showModal(); });
+$('settingsBtn').addEventListener('click', () => { $('sAutoLock').value = String(prefs.autoLock); $('sLang').value = lang; $('settingsDlg').showModal(); });
 $('lockBtn').addEventListener('click', lock);
-$('sAutoLock').addEventListener('change', e => { prefs.autoLock = +e.target.value; savePrefs(); toast('已更新'); });
+$('sAutoLock').addEventListener('change', e => { prefs.autoLock = +e.target.value; savePrefs(); toast(t('updated')); });
 
 $('sExport').addEventListener('click', async () => {
   const raw = safeGet(STORE_KEY); if (!raw) return;
-  const name = `密码本备份-${new Date().toISOString().slice(0,10)}.json`;
+  const name = `${t('backupFile')}-${new Date().toISOString().slice(0,10)}.json`;
   const file = new File([raw], name, { type:'application/json' });
   try {
     if (navigator.canShare?.({ files:[file] })) { await navigator.share({ files:[file], title:name }); return; }
   } catch (err) { if (err.name === 'AbortError') return; }
   const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = name;
   document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-  toast('备份已导出（仍是加密的）');
+  toast(t('exported'));
 });
 
 let pendingImport = null;
@@ -676,18 +794,18 @@ $('importFile').addEventListener('change', async e => {
     if (!validBlob(o)) throw 0;
     pendingImport = o; $('impPw').value = ''; $('impErr').textContent = '';
     $('settingsDlg').close(); $('impDlg').showModal();
-  } catch { toast('不是有效的密码本备份文件'); }
+  } catch { toast(t('badBackup')); }
 });
 $('impForm').addEventListener('submit', async e => {
-  e.preventDefault(); $('impErr').textContent = '正在解密…';
+  e.preventDefault(); $('impErr').textContent = t('decrypting');
   try {
     const r = await open(pendingImport, $('impPw').value);
     const incoming = Array.isArray(r.data.entries) ? r.data.entries : [];
     const remap = {};
     for (const c of (Array.isArray(r.data.categories) ? r.data.categories : [])) {
       if (!c || typeof c.id !== 'string' || typeof c.name !== 'string' || catById(c.id)) continue;
-      const same = cats().find(x => x.name === c.name);
-      if (same) remap[c.id] = same.id; else cats().push({ id: c.id, name: c.name.slice(0, 20) });
+      const same = cats().find(x => x.name === c.name || (c.key && x.key === c.key));
+      if (same) remap[c.id] = same.id; else cats().push({ id: c.id, name: c.name.slice(0, 20), ...(c.key ? { key: c.key } : {}) });
     }
     let added = 0, updated = 0;
     for (const inc of incoming) {
@@ -698,8 +816,8 @@ $('impForm').addEventListener('submit', async e => {
       else if ((inc.updated||0) > (ex.updated||0)) { Object.assign(ex, inc); updated++; }
     }
     await persist(); renderList(); pendingImport = null; $('impDlg').close();
-    toast(`导入完成：新增 ${added}，更新 ${updated}`);
-  } catch { $('impErr').textContent = '密码错误或文件已损坏'; }
+    toast(t('importDone', { a: added, u: updated }));
+  } catch { $('impErr').textContent = t('badBackupPw'); }
 });
 
 $('sChangePw').addEventListener('click', () => {
@@ -709,19 +827,19 @@ $('sChangePw').addEventListener('click', () => {
 $('pwForm').addEventListener('submit', async e => {
   e.preventDefault();
   const a = $('pwNew').value, b = $('pwNew2').value;
-  if (a.length < 8) return $('pwErr').textContent = '新主密码至少 8 位';
-  if (a !== b) return $('pwErr').textContent = '两次输入不一致';
-  $('pwErr').textContent = '正在验证…';
+  if (a.length < 8) return $('pwErr').textContent = t('errNewMin8');
+  if (a !== b) return $('pwErr').textContent = t('errMismatch');
+  $('pwErr').textContent = t('verifying');
   try { await open(JSON.parse(safeGet(STORE_KEY)), $('pwOld').value); }
-  catch { return $('pwErr').textContent = '当前主密码错误'; }
+  catch { return $('pwErr').textContent = t('wrongCurrent'); }
   const salt = rand(16);
   session.key = await deriveKey(a, salt, ITER); session.salt = salt; session.iter = ITER;
-  await persist(); $('pwDlg').close(); toast('主密码已修改，记得重新导出备份');
+  await persist(); $('pwDlg').close(); toast(t('pwChanged'), 3500);
 });
 
 $('sWipe').addEventListener('click', () => {
-  if (!confirm('将永久删除本设备上的所有密码，无法恢复。确定继续？')) return;
-  if (prompt('请输入「删除」二字确认') !== '删除') return;
+  if (!confirm(t('wipeConfirm'))) return;
+  if ((prompt(t('wipePrompt')) || '').trim() !== t('wipeWord')) return;
   safeDel(STORE_KEY); session = null; closeAllDialogs(); show('setup');
 });
 
@@ -796,11 +914,12 @@ function parseNotes(text){
 }
 
 let parsed = [];
+const PASTE_CAT_OPTS = { withAuto: true, withNew: true };
 function pasteStep(n){ $('pasteStep1').classList.toggle('hidden', n !== 1); $('pasteStep2').classList.toggle('hidden', n !== 2); }
 function updatePasteCount(){
   const n = parsed.filter(p => p.on).length;
-  $('pasteImport').textContent = `导入 ${n} 条`; $('pasteImport').disabled = n === 0;
-  $('pasteSummary').textContent = `识别出 ${parsed.length} 条，已选 ${n} 条`;
+  $('pasteImport').textContent = t('importN', { n }); $('pasteImport').disabled = n === 0;
+  $('pasteSummary').textContent = t('pasteSummary', { a: parsed.length, b: n });
 }
 function renderPreview(){
   $('pasteList').replaceChildren(...parsed.map((p, i) => {
@@ -809,10 +928,10 @@ function renderPreview(){
     const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = p.on;
     cb.addEventListener('change', () => { p.on = cb.checked; c.classList.toggle('off', !p.on); updatePasteCount(); });
     const tag = document.createElement('span'); tag.className = 'tag';
-    tag.textContent = p.dup ? '密码本里已有同名同账号' : (!p.pw ? '没识别到密码' : '');
-    head.append(cb, document.createTextNode(`第 ${i + 1} 条`), tag);
+    tag.textContent = p.dup ? t('dupTag') : (!p.pw ? t('noPwTag') : '');
+    head.append(cb, document.createTextNode(t('itemN', { i: i + 1 })), tag);
     c.append(head);
-    for (const [f, label] of [['name','名称'],['user','账号'],['pw','密码'],['url','网址'],['note','备注']]) {
+    for (const [f, label] of [['name', t('name')], ['user', t('account')], ['pw', t('password')], ['url', t('url')], ['note', t('notes')]]) {
       if (f === 'url' && !p.url || f === 'note' && !p.note) continue;
       const row = document.createElement('label'); row.className = 'prow';
       const sp = document.createElement('span'); sp.textContent = label;
@@ -830,17 +949,16 @@ $('sPaste').addEventListener('click', () => {
   $('settingsDlg').close(); $('pasteDlg').showModal();
 });
 $('pasteClip').addEventListener('click', async () => {
-  try { $('pasteText').value = await navigator.clipboard.readText(); } catch { toast('无法读取剪贴板，请长按输入框粘贴'); }
+  try { $('pasteText').value = await navigator.clipboard.readText(); } catch { toast(t('clipFail')); }
 });
 $('pasteParse').addEventListener('click', () => {
   const key = e => (e.name || '').trim().toLowerCase() + '|' + (e.user || '').trim().toLowerCase();
   const have = new Set(session.vault.entries.map(key));
   parsed = parseNotes($('pasteText').value).map(p => { const dup = have.has(key(p)); return { ...p, dup, on: !!p.pw && !dup }; });
-  if (!parsed.length) return toast('没识别到内容，请检查粘贴的文字');
+  if (!parsed.length) return toast(t('nothingFound'));
   fillCatSelect($('pasteCat'), '__auto', PASTE_CAT_OPTS);
   pasteStep(2); renderPreview();
 });
-const PASTE_CAT_OPTS = { withAuto: true, withNew: true };
 bindCatSelect($('pasteCat'), null, PASTE_CAT_OPTS);
 $('pasteBack').addEventListener('click', () => pasteStep(1));
 $('pasteImport').addEventListener('click', async () => {
@@ -848,7 +966,7 @@ $('pasteImport').addEventListener('click', async () => {
   const pc = $('pasteCat').value;
   for (const p of parsed) {
     if (!p.on) continue;
-    const name = p.name.trim() || p.user.trim() || '未命名';
+    const name = p.name.trim() || p.user.trim() || t('untitled');
     const e = { id: newId(), name, user: p.user.trim(), pw: p.pw, url: p.url.trim(), note: p.note, created: now, updated: now };
     e.cat = pc === '__auto' ? guessCat(e) : (pc === '__new' ? '' : pc);
     session.vault.entries.push(e);
@@ -856,7 +974,7 @@ $('pasteImport').addEventListener('click', async () => {
   }
   await persist(); parsed = []; $('pasteText').value = '';
   $('pasteDlg').close(); renderList();
-  toast(`已导入 ${n} 条。确认无误后，记得删掉备忘录里的明文密码`, 5000);
+  toast(t('pasteDone', { n }), 5000);
 });
 
 // ---------- 管理分类 ----------
@@ -869,27 +987,27 @@ function renderCatList(){
   const list = cats().map((c, i) => {
     const row = document.createElement('div'); row.className = 'catrow';
     const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = c.name;
-    const cnt = document.createElement('span'); cnt.className = 'cnt'; cnt.textContent = es.filter(e => e.cat === c.id).length + ' 条';
+    const cnt = document.createElement('span'); cnt.className = 'cnt'; cnt.textContent = t('nItems', { n: es.filter(e => e.cat === c.id).length });
     const btn = (label, fn, cls = '') => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small ' + cls; b.textContent = label; b.addEventListener('click', fn); return b; };
     const up = btn('↑', async () => { [cats()[i - 1], cats()[i]] = [cats()[i], cats()[i - 1]]; await persist(); renderCatList(); });
-    up.disabled = i === 0; up.setAttribute('aria-label', '上移');
+    up.disabled = i === 0; up.setAttribute('aria-label', t('moveUp'));
     row.append(nm, cnt, up,
-      btn('改名', async () => {
-        const v = (prompt('新的分类名称', c.name) || '').trim().slice(0, 20);
+      btn(t('rename'), async () => {
+        const v = (prompt(t('renamePrompt'), c.name) || '').trim().slice(0, 20);
         if (!v || v === c.name) return;
-        if (cats().some(x => x.name === v)) return toast('已经有这个分类了');
+        if (cats().some(x => x.name === v)) return toast(t('catExists'));
         c.name = v; await persist(); renderCatList();
       }),
-      btn('删除', async () => {
+      btn(t('delete'), async () => {
         const n = es.filter(e => e.cat === c.id).length;
-        if (!confirm(`删除分类「${c.name}」？` + (n ? `里面的 ${n} 条密码会变成「未分类」，不会被删除。` : ''))) return;
+        if (!confirm(t('confirmDelCat', { name: c.name }) + (n ? t('confirmDelCatN', { n }) : ''))) return;
         session.vault.categories = cats().filter(x => x.id !== c.id);
         for (const e of es) if (e.cat === c.id) e.cat = '';
         await persist(); renderCatList();
       }, 'danger'));
     return row;
   });
-  if (!list.length) { const p = document.createElement('div'); p.className = 'catrow'; p.textContent = '还没有分类'; list.push(p); }
+  if (!list.length) { const p = document.createElement('div'); p.className = 'catrow'; p.textContent = t('noCats'); list.push(p); }
   $('catList').replaceChildren(...list);
 }
 $('sCats').addEventListener('click', openCatManager);
@@ -897,16 +1015,16 @@ $('catDlg').addEventListener('close', () => { if (session) renderList(); });
 $('catAddForm').addEventListener('submit', async e => {
   e.preventDefault();
   const v = $('catNew').value.trim(); if (!v) return;
-  if (cats().some(c => c.name === v)) return toast('已经有这个分类了');
+  if (cats().some(c => c.name === v)) return toast(t('catExists'));
   addCategory(v); await persist(); $('catNew').value = ''; renderCatList();
 });
 $('sAutoCat').addEventListener('click', async () => {
   const todo = session.vault.entries.filter(e => !catOf(e));
-  if (!todo.length) return toast('所有条目都已经有分类了');
+  if (!todo.length) return toast(t('allHaveCat'));
   let n = 0;
   for (const e of todo) { const c = guessCat(e); if (c) { e.cat = c; e.updated = Date.now(); n++; } }
   await persist(); $('settingsDlg').close(); catFilter = 'all'; renderList();
-  toast(`自动分好了 ${n} 条` + (todo.length - n ? `，还有 ${todo.length - n} 条没认出来，请点进去手动选分类` : ''), 4000);
+  toast(t('autoCatDone', { n }) + (todo.length - n ? t('autoCatRest', { m: todo.length - n }) : ''), 4000);
 });
 
 document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => b.closest('dialog').close()));
@@ -924,8 +1042,12 @@ document.addEventListener('visibilitychange', () => {
 async function requestPersistentStorage(){ try { await navigator.storage?.persist?.(); } catch {} }
 
 // ---------- 启动 ----------
+applyI18n();
 if (!window.isSecureContext || !crypto.subtle) {
-  document.body.innerHTML = '<div class="wrap auth"><h1>无法运行</h1><p class="sub">密码本需要在 HTTPS（或本机 localhost）下打开，才能使用浏览器的加密功能。</p></div>';
+  const w = document.createElement('div'); w.className = 'wrap auth';
+  const h = document.createElement('h1'); h.textContent = t('insecureTitle');
+  const p = document.createElement('p'); p.className = 'sub'; p.textContent = t('insecureMsg');
+  w.append(h, p); document.body.replaceChildren(w);
   return;
 }
 let existing = null;
